@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DutyPlanner Pro - Real-Time Sync</title>
+    <title>DutyPlanner Pro - Stable Version</title>
     <style>
         :root { --primary: #4361ee; --dark-red: #8b0000; --bg: #f8f9fd; --sidebar-bg: #1e1e2d; --viber-bg: #7360f2; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -30,7 +30,7 @@
         .current-time-inline { font-size: 16px; font-weight: 700; color: #d00000; background: white; padding: 5px 10px; border-radius: 5px; border: 1px solid #ddd; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: left; }
+        td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: left; color: #333; }
         .weekend { background: #fff5f5; color: #ef233c; }
 
         .phone-group { display: flex; flex-direction: column; gap: 5px; width: 100%; }
@@ -59,7 +59,7 @@
     <hr style="opacity:0.1; margin:20px 0;">
 
     <div class="input-group">
-        <label>მთავარი პასუხისმგებლები (ბოლოში)</label>
+        <label>მთავარი პასუხისმგებლები</label>
         <input type="text" id="adminName" placeholder="სახელი გვარი" style="margin-bottom:5px;">
         <input type="text" id="adminPhone" placeholder="ტელეფონი">
         <button class="btn btn-primary" style="background:#e67e22;" onclick="addAdmin()">+ დამატება</button>
@@ -89,16 +89,13 @@
     let currentScheduleData = [];
     const monthsKA = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
 
-    // რეალურ დროში განახლებადი საათის ფუნქცია
     function updateLiveClocks() {
         const now = new Date();
         const timeStr = `${now.getDate()} ${monthsKA[now.getMonth()]} | ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-        
         document.querySelectorAll('.current-time-inline').forEach(el => {
             el.innerHTML = `📅 ${timeStr}`;
         });
     }
-    // ყოველ წამს გაუშვას განახლება
     setInterval(updateLiveClocks, 1000);
 
     function formatViber(p) {
@@ -109,21 +106,41 @@
 
     function addAdmin() {
         const n = document.getElementById('adminName'), p = document.getElementById('adminPhone');
-        if(n.value.trim()) { admins.push({ name: n.value.trim(), phone: p.value.trim() }); localStorage.setItem('savedAdmins', JSON.stringify(admins)); updateAdminUI(); renderPreview(); n.value=""; p.value=""; }
+        if(n.value.trim()) { 
+            admins.push({ name: n.value.trim(), phone: p.value.trim() }); 
+            localStorage.setItem('savedAdmins', JSON.stringify(admins)); 
+            updateAdminUI(); renderPreview(); n.value=""; p.value=""; 
+        }
     }
 
-    function updateAdminUI() { document.getElementById('adminList').innerHTML = admins.map((a, i) => `<div style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>${a.name}</span><span onclick="admins.splice(${i},1); updateAdminUI(); renderPreview();" style="color:red; cursor:pointer;">×</span></div>`).join(''); }
+    function updateAdminUI() { 
+        document.getElementById('adminList').innerHTML = admins.map((a, i) => 
+            `<div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                <span>${a.name}</span>
+                <span onclick="admins.splice(${i},1); localStorage.setItem('savedAdmins', JSON.stringify(admins)); updateAdminUI(); renderPreview();" style="color:red; cursor:pointer;">×</span>
+            </div>`).join(''); 
+    }
 
     function addStaff() {
         const n = document.getElementById('staffName'), p = document.getElementById('staffPhone');
-        if(n.value.trim()) { staff.push({ name: n.value.trim(), phone: p.value.trim() }); localStorage.setItem('savedStaffContacts', JSON.stringify(staff)); updateStaffUI(); renderPreview(); n.value=""; p.value=""; }
+        if(n.value.trim()) { 
+            staff.push({ name: n.value.trim(), phone: p.value.trim() }); 
+            localStorage.setItem('savedStaffContacts', JSON.stringify(staff)); 
+            updateStaffUI(); renderPreview(); n.value=""; p.value=""; 
+        }
     }
 
-    function updateStaffUI() { document.getElementById('statsUI').innerHTML = staff.map((s, i) => `<div style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>${s.name}</span><span onclick="staff.splice(${i},1); updateStaffUI(); renderPreview();" style="color:red; cursor:pointer;">×</span></div>`).join(''); }
+    function updateStaffUI() { 
+        document.getElementById('statsUI').innerHTML = staff.map((s, i) => 
+            `<div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+                <span>${s.name}</span>
+                <span onclick="staff.splice(${i},1); localStorage.setItem('savedStaffContacts', JSON.stringify(staff)); updateStaffUI(); renderPreview();" style="color:red; cursor:pointer;">×</span>
+            </div>`).join(''); 
+    }
 
     function generateRandom() {
         const s = document.getElementById('startMonth').value, e = document.getElementById('endMonth').value;
-        if(!s || !e || staff.length === 0) return alert("შეავსეთ მონაცემები!");
+        if(!s || !e || staff.length === 0) return alert("შეავსეთ პერსონალის სია და აირჩიეთ თვეები!");
         let shuffled = [...staff].sort(() => Math.random() - 0.5);
         let cur = new Date(Date.UTC(s.split('-')[0], s.split('-')[1]-1, 1));
         const end = new Date(Date.UTC(e.split('-')[0], e.split('-')[1], 0));
@@ -131,7 +148,11 @@
         let idx = 0;
         while(cur <= end) {
             let p = shuffled[idx % shuffled.length];
-            currentScheduleData.push({ day: cur.getUTCDate(), month: cur.getUTCMonth(), year: cur.getUTCFullYear(), isWeekend: (cur.getUTCDay() === 0 || cur.getUTCDay() === 6), staffName: p.name, staffPhone: p.phone });
+            currentScheduleData.push({ 
+                day: cur.getUTCDate(), month: cur.getUTCMonth(), year: cur.getUTCFullYear(), 
+                isWeekend: (cur.getUTCDay() === 0 || cur.getUTCDay() === 6), 
+                staffName: p.name, staffPhone: p.phone 
+            });
             idx++; cur.setUTCDate(cur.getUTCDate() + 1);
         }
         renderPreview();
@@ -140,12 +161,11 @@
     function renderPreview() {
         const title = document.getElementById('topTitleInput').value || "სამუშაო განრიგი";
         const now = new Date();
-        // ზუსტი თარიღის შედარება რეალურ დროსთან
         const todayData = currentScheduleData.find(d => d.day === now.getDate() && d.month === now.getMonth() && d.year === now.getFullYear());
 
         let todayHTML = todayData ? `<div class="today-box"><h2>🔔 დღევანდელი მორიგე</h2><div class="today-name">${todayData.staffName}</div><div class="phone-group" style="max-width:220px; margin:auto;"><a href="tel:${todayData.staffPhone.replace(/\D/g,'')}" class="btn-call" style="background:#fff; color:#8b0000 !important;">📞 ${todayData.staffPhone}</a><a href="${formatViber(todayData.staffPhone)}" class="btn-viber" style="background:#fff; color:#7360f2 !important;">VIBER</a></div></div>` : "";
 
-        let html = `${todayHTML}<h1 style="text-align:center; color:var(--dark-red); font-size:22px;">${title}</h1>`;
+        let html = todayHTML + `<h1 style="text-align:center; color:var(--dark-red); font-size:22px;">${title}</h1>`;
         let lastMonth = -1;
         
         currentScheduleData.forEach((item, i) => {
@@ -170,15 +190,18 @@
         let adminsHTML = admins.length > 0 ? `<div style="margin-top:40px; border-top:2px solid #eee; padding-top:20px; text-align:center;"><h3 style="color:#555; font-size:14px;">⚠️ პასუხისმგებელი პირები</h3>${admins.map(a => `<div style="margin:15px auto; max-width:250px;"><div style="font-weight:bold; margin-bottom:5px;">${a.name}</div><div class="phone-group"><a href="tel:${a.phone.replace(/\D/g,'')}" class="btn-call">📞 ${a.phone}</a><a href="${formatViber(a.phone)}" class="btn-viber">VIBER</a></div></div>`).join('')}</div>` : "";
 
         document.getElementById('schedulePreview').innerHTML = html + "</tbody></table>" + adminsHTML;
-        updateLiveClocks(); // დაუყოვნებლივ განახლება
+        updateLiveClocks();
     }
 
     function copyFinalHTML() {
         let tempDiv = document.createElement('div');
         tempDiv.innerHTML = document.getElementById('schedulePreview').innerHTML;
-        tempDiv.querySelectorAll('select').forEach(s => { let b = document.createElement('b'); b.innerText = s.value; s.parentNode.replaceChild(b, s); });
+        tempDiv.querySelectorAll('select').forEach(s => { 
+            let b = document.createElement('b'); 
+            b.innerText = s.value; 
+            s.parentNode.replaceChild(b, s); 
+        });
         
-        // საბოლოო კოდში ვამატებთ პატარა სკრიპტს, რომელიც კოპირებულ ფაილშიც აამუშავებს საათს
         const final = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>
             body { font-family: sans-serif; padding: 5px; background: #f9f9f9; }
             .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -187,7 +210,7 @@
             .month-header { display: flex; flex-direction: column; align-items: center; background: #eef2f7; padding: 12px; margin-top: 20px; border-radius: 8px; border-left: 6px solid #8b0000; gap: 5px; }
             .current-time-inline { font-size: 14px; font-weight: 700; color: #d00000; background: white; padding: 4px 8px; border-radius: 4px; border: 1px solid #ddd; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-            td { border-bottom: 1px solid #eee; padding: 10px 5px; font-size: 14px; }
+            td { border-bottom: 1px solid #eee; padding: 10px 5px; font-size: 14px; color: #333; }
             .weekend { background: #fffafa; color: #d9534f; }
             .phone-group { display: flex; flex-direction: column; gap: 4px; }
             .btn-call { background: #007bff; color: white !important; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center; }
@@ -202,9 +225,15 @@
             }, 1000);
         <\/script></body></html>`;
         
-        const el = document.getElementById('codeOutput'); el.value = final; el.style.display="block"; el.select(); document.execCommand('copy'); el.style.display="none";
-        alert("კოდი დაკოპირდა! საათი ავტომატურად იმუშავებს.");
+        const el = document.getElementById('codeOutput'); 
+        el.value = final; 
+        el.style.display="block"; 
+        el.select(); 
+        document.execCommand('copy'); 
+        el.style.display="none";
+        alert("კოდი დაკოპირდა!");
     }
+
     window.onload = () => { updateAdminUI(); updateStaffUI(); };
 </script>
 </body>
