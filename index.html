@@ -3,21 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DutyPlanner Pro - Live</title>
+    <title>DutyPlanner Pro - GitHub Stable</title>
     <style>
         :root { --primary: #4361ee; --dark-red: #8b0000; --bg: #f8f9fd; --viber-bg: #7360f2; }
-        body { font-family: 'Inter', sans-serif; background: white; margin: 0; padding: 15px; }
-        .container { max-width: 600px; margin: auto; }
-        .today-box { background: linear-gradient(135deg, #8b0000, #c0392b); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; box-shadow: 0 10px 20px rgba(139,0,0,0.2); }
-        .today-name { font-size: 28px; font-weight: 900; margin-bottom: 12px; }
-        .month-header { display: flex; justify-content: space-between; align-items: center; background: #eef2f7; padding: 12px; margin-top: 25px; border-radius: 8px; border-left: 6px solid var(--dark-red); }
-        .current-time-inline { font-size: 14px; font-weight: 700; color: #d00000; background: white; padding: 5px 10px; border-radius: 5px; border: 1px solid #ddd; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        
+        .today-box { 
+            background: linear-gradient(135deg, #8b0000, #c0392b); 
+            color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 30px; 
+            box-shadow: 0 10px 20px rgba(139,0,0,0.2);
+        }
+        .today-name { font-size: 28px; font-weight: 900; margin-bottom: 15px; }
+
+        .month-header { display: flex; justify-content: space-between; align-items: center; background: #eef2f7; padding: 15px; margin-top: 30px; border-radius: 10px; border-left: 8px solid var(--dark-red); color: #222; }
+        .current-time-inline { font-size: 14px; font-weight: 700; color: #d00000; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        td { border-bottom: 1px solid #eee; padding: 12px 8px; font-size: 15px; }
+        td { border-bottom: 1px solid #eee; padding: 12px 8px; text-align: left; }
         .weekend { background: #fff5f5; color: #ef233c; font-weight: bold; }
-        .phone-group { display: flex; flex-direction: column; gap: 5px; }
+
+        .phone-group { display: flex; flex-direction: column; gap: 5px; width: 100%; }
         .btn-call { background: #007bff; color: white !important; text-decoration: none; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: bold; text-align: center; display: block; }
-        .btn-viber { background: var(--viber-bg); color: white !important; text-decoration: none; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: 900; text-align: center; display: block; }
+        .btn-viber { background: var(--viber-bg); color: white !important; text-decoration: none; padding: 6px; border-radius: 6px; font-size: 10px; font-weight: 900; text-align: center; display: block; }
     </style>
 </head>
 <body>
@@ -27,19 +35,18 @@
 </div>
 
 <script>
-    // --- ჩაწერე შენი მონაცემები აქ ---
+    // === 1. აქ ჩაწერე შენი თანამშრომლების სია ===
     const staff = [
         { name: "გიორგი გიორგაძე", phone: "599112233" },
         { name: "ნინო ნინიძე", phone: "595445566" },
-        { name: "დავით დავითაძე", phone: "577889900" }
+        { name: "დავით დავითაძე", phone: "577889900" },
+        { name: "ეკა ეკაძე", phone: "555112233" }
     ];
 
+    // === 2. აქ ჩაწერე ადმინისტრატორები ===
     const admins = [
-        { name: "პასუხისმგებელი: მამუკა მამუკაძე", phone: "591000000" }
+        { name: "მთავარი პასუხისმგებელი", phone: "591000000" }
     ];
-
-    const title = "დაცვის სამუშაო განრიგი";
-    // --------------------------------
 
     const monthsKA = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
 
@@ -49,26 +56,28 @@
         return "viber://contact?number=%2B" + clean;
     }
 
-    function render() {
+    function init() {
         const now = new Date();
         const year = now.getFullYear();
         const month = now.getMonth();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         
-        // დღევანდელი მორიგე (ავტომატური გამოთვლა)
+        // დღევანდელი მორიგის გამოთვლა (ციკლურად სიიდან)
         const todayIdx = (now.getDate() - 1) % staff.length;
         const todayStaff = staff[todayIdx];
 
         let html = `
             <div class="today-box">
-                <div style="font-size:14px; opacity:0.9;">🔔 დღევანდელი მორიგე</div>
+                <div style="font-size:14px; opacity:0.8; margin-bottom:5px;">🔔 დღევანდელი მორიგე</div>
                 <div class="today-name">${todayStaff.name}</div>
-                <div style="display:flex; justify-content:center; gap:8px;">
-                    <a href="tel:${todayStaff.phone}" class="btn-call" style="background:white; color:red !important; min-width:100px;">📞 დარეკვა</a>
-                    <a href="${formatViber(todayStaff.phone)}" class="btn-viber" style="background:white; color:#7360f2 !important; min-width:100px;">VIBER</a>
+                <div style="display:flex; justify-content:center; gap:10px; max-width:250px; margin:auto;">
+                    <a href="tel:${todayStaff.phone}" class="btn-call" style="background:white; color:red !important; flex:1;">📞 დარეკვა</a>
+                    <a href="${formatViber(todayStaff.phone)}" class="btn-viber" style="background:white; color:#7360f2 !important; flex:1;">VIBER</a>
                 </div>
             </div>
-            <h2 style="text-align:center; color:var(--dark-red);">${title}</h2>
+            
+            <h1 style="text-align:center; color:var(--dark-red); font-size:22px;">დაცვის სამუშაო განრიგი</h1>
+            
             <div class="month-header">
                 <b>${monthsKA[month]} ${year}</b>
                 <span class="current-time-inline" id="clock"></span>
@@ -83,8 +92,8 @@
 
             html += `
                 <tr class="${isWeekend ? 'weekend' : ''}">
-                    <td style="width:20%">${d} ${monthsKA[month].substring(0,3)}</td>
-                    <td style="width:40%"><b>${person.name}</b></td>
+                    <td style="width:15%">${d} ${monthsKA[month].substring(0,3)}</td>
+                    <td style="width:45%"><b>${person.name}</b></td>
                     <td style="width:40%">
                         <div class="phone-group">
                             <a href="tel:${person.phone}" class="btn-call">📞 ${person.phone}</a>
@@ -97,31 +106,38 @@
 
         html += "</tbody></table>";
 
-        // ადმინები
-        admins.forEach(a => {
-            html += `
-                <div style="margin-top:30px; text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px;">
-                    <div style="font-size:13px; color:#666; margin-bottom:5px;">${a.name}</div>
-                    <div style="display:flex; justify-content:center; gap:10px;">
-                        <a href="tel:${a.phone}" class="btn-call" style="min-width:120px;">📞 დარეკვა</a>
-                        <a href="${formatViber(a.phone)}" class="btn-viber" style="min-width:120px;">VIBER</a>
+        // ადმინების სექცია
+        if(admins.length > 0) {
+            html += `<div style="margin-top:40px; border-top:2px solid #eee; padding-top:20px; text-align:center;">
+                <h3 style="color:#555; font-size:14px;">⚠️ პასუხისმგებელი პირები</h3>`;
+            admins.forEach(a => {
+                html += `
+                    <div style="margin:15px auto; max-width:250px;">
+                        <div style="font-weight:bold; margin-bottom:5px;">${a.name}</div>
+                        <div class="phone-group">
+                            <a href="tel:${a.phone}" class="btn-call">📞 ${a.phone}</a>
+                            <a href="${formatViber(a.phone)}" class="btn-viber">VIBER</a>
+                        </div>
                     </div>
-                </div>
-            `;
-        });
+                `;
+            });
+            html += `</div>`;
+        }
 
         document.getElementById('schedulePreview').innerHTML = html;
 
-        // საათის ფუნქცია
+        // საათის ამუშავება
         setInterval(() => {
             const t = new Date();
-            const timeStr = t.getDate() + " " + monthsKA[t.getMonth()] + " | " + String(t.getHours()).padStart(2, '0') + ":" + String(t.getMinutes()).padStart(2, '0') + ":" + String(t.getSeconds()).padStart(2, '0');
+            const ts = t.getDate() + " " + monthsKA[t.getMonth()] + " | " + String(t.getHours()).padStart(2, '0') + ":" + String(t.getMinutes()).padStart(2, '0') + ":" + String(t.getSeconds()).padStart(2, '0');
             const clockEl = document.getElementById('clock');
-            if(clockEl) clockEl.innerHTML = "📅 " + timeStr;
+            if(clockEl) clockEl.innerHTML = "📅 " + ts;
         }, 1000);
     }
 
-    window.onload = render;
+    // გვერდის ჩატვირთვისას გაშვება
+    window.onload = init;
 </script>
+
 </body>
 </html>
