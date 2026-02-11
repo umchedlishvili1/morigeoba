@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DutyPlanner Pro - IT Generator</title>
+    <title>DutyPlanner Pro - Ultimate Generator</title>
     <style>
         :root { --primary: #4361ee; --dark-red: #8b0000; --bg: #f0f2f5; --sidebar-bg: #1e1e2d; --viber-bg: #7360f2; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -55,7 +55,7 @@
         <input type="text" id="staffName" placeholder="სახელი გვარი">
         <input type="text" id="staffPhone" placeholder="577 00 00 00" style="margin-top:5px;">
         <button class="btn" style="background:var(--primary); color:white;" onclick="addItem('staff')">+ სიაში დამატება</button>
-        <div id="staffListUI" style="margin-top:12px; max-height: 200px; overflow-y: auto;"></div>
+        <div id="staffListUI" style="margin-top:12px; max-height: 180px; overflow-y: auto;"></div>
     </div>
 
     <div class="input-group">
@@ -73,7 +73,7 @@
     <div id="schedulePreview">
         <div style="text-align:center; color:#888; margin-top:100px;">
             <h3>განრიგი ცარიელია</h3>
-            <p>შეარჩიეთ პერიოდი და დააჭირეთ გენერირებას</p>
+            <p>შეავსეთ მონაცემები და დააჭირეთ გენერირებას</p>
         </div>
     </div>
 </div>
@@ -81,23 +81,22 @@
 <textarea id="hiddenClipboard" style="display:none;"></textarea>
 
 <script>
-    // ავტომატურად შევსებული სია
     const initialStaff = [
         {name: "შალვა გაგნიძე", phone: "555 555 555"},
         {name: "გიორგი ლომიძე", phone: "111 222 33"},
         {name: "ვასილ გოგალაძე", phone: "2232"},
-        {name: "თანამშრომელი 4", phone: "5XX XX XX XX"},
-        {name: "თანამშრომელი 5", phone: "5XX XX XX XX"},
-        {name: "თანამშრომელი 6", phone: "5XX XX XX XX"},
-        {name: "თანამშრომელი 7", phone: "5XX XX XX XX"},
-        {name: "თანამშრომელი 8", phone: "5XX XX XX XX"},
-        {name: "თანამშრომელი 9", phone: "5XX XX XX XX"},
-        {name: "თანამშრომელი 10", phone: "5XX XX XX XX"}
+        {name: "თანამშრომელი 4", phone: "599 00 00 04"},
+        {name: "თანამშრომელი 5", phone: "599 00 00 05"},
+        {name: "თანამშრომელი 6", phone: "599 00 00 06"},
+        {name: "თანამშრომელი 7", phone: "599 00 00 07"},
+        {name: "თანამშრომელი 8", phone: "599 00 00 08"},
+        {name: "თანამშრომელი 9", phone: "599 00 00 09"},
+        {name: "თანამშრომელი 10", phone: "599 00 00 10"}
     ];
 
     const initialAdmins = [
-        {name: "ადმინისტრატორი 1", phone: "5XX XX XX XX"},
-        {name: "ადმინისტრატორი 2", phone: "5XX XX XX XX"}
+        {name: "პასუხისმგებელი 1", phone: "577 11 22 33"},
+        {name: "პასუხისმგებელი 2", phone: "577 44 55 66"}
     ];
 
     let staff = JSON.parse(localStorage.getItem('pro_staff')) || initialStaff;
@@ -132,9 +131,8 @@
         end.setMonth(end.getMonth() + 1); end.setDate(0);
 
         let curr = new Date(start), i = 0;
-
         while(curr <= end) {
-            let p = staff[i % staff.length]; // თანმიმდევრული გადანაწილება
+            let p = staff[i % staff.length];
             schedule.push({
                 d: curr.getDate(), m: curr.getMonth(), y: curr.getFullYear(),
                 isW: (curr.getDay() === 0 || curr.getDay() === 6),
@@ -179,7 +177,7 @@
         });
 
         let admHTML = admins.length > 0 ? `<div style="margin-top:30px; border-top:2px dashed #ddd; padding-top:20px; text-align:center;"><h4 style="color:#666; font-size:14px; margin-bottom:15px;">⚠️ პასუხისმგებელი პირები</h4>` + 
-            admins.map(a => `<div style="margin-bottom:10px;"><b>${a.name}</b><br><span style="font-size:13px;">📞 ${a.phone}</span></div>`).join('') + `</div>` : "";
+            admins.map(a => `<div style="margin-bottom:15px;"><b>${a.name}</b><br><span style="font-size:13px;">📞 ${a.phone}</span></div>`).join('') + `</div>` : "";
 
         document.getElementById('schedulePreview').innerHTML = html + `</tbody></table>${admHTML}</div>`;
     }
@@ -194,22 +192,40 @@
         let temp = document.createElement('div');
         temp.innerHTML = document.getElementById('schedulePreview').innerHTML;
         
+        // სელექტების ტექსტად ქცევა
         temp.querySelectorAll('select').forEach(sel => {
             let b = document.createElement('b'); b.innerText = sel.value;
             sel.parentNode.replaceChild(b, sel);
         });
 
+        // ფუნქცია ნომრის გასუფთავებისთვის
+        const cleanNum = (txt) => txt.replace(/\D/g,'');
+
+        // ძირითადი ცხრილის ნომრების დამუშავება
         temp.querySelectorAll('tr').forEach(tr => {
-            let phoneCell = tr.cells[2];
-            if(phoneCell) {
-                let raw = phoneCell.innerText.replace('📞','').trim();
-                let clean = raw.replace(/\D/g,'');
-                phoneCell.innerHTML = `<div style="display:flex; flex-direction:column; gap:3px;">
+            let cell = tr.cells[2];
+            if(cell) {
+                let raw = cell.innerText.replace('📞','').trim();
+                let clean = cleanNum(raw);
+                cell.innerHTML = `<div style="display:flex; flex-direction:column; gap:3px;">
                     <a href="tel:${clean}" style="background:#007bff; color:white; text-decoration:none; padding:6px; border-radius:4px; font-size:11px; text-align:center; font-weight:bold;">📞 ${raw}</a>
                     <a href="viber://contact?number=%2B995${clean.slice(-9)}" style="background:#7360f2; color:white; text-decoration:none; padding:4px; border-radius:4px; font-size:9px; text-align:center; font-weight:900;">VIBER</a>
                 </div>`;
             }
         });
+
+        // ადმინისტრაციის ნომრების დამუშავება (VIBER-ის დამატება)
+        const admSection = temp.querySelector('div[style*="border-top:2px dashed"]');
+        if(admSection) {
+            admSection.querySelectorAll('span').forEach(span => {
+                let raw = span.innerText.replace('📞','').trim();
+                let clean = cleanNum(raw);
+                span.innerHTML = `<div style="display:flex; justify-content:center; gap:10px; margin-top:5px;">
+                    <a href="tel:${clean}" style="color:#007bff; text-decoration:none; font-weight:bold;">📞 ${raw}</a>
+                    <a href="viber://contact?number=%2B995${clean.slice(-9)}" style="color:#7360f2; text-decoration:none; font-weight:900; font-size:11px; border:1px solid #7360f2; padding:1px 5px; border-radius:4px;">VIBER</a>
+                </div>`;
+            });
+        }
 
         const finalCode = `<!DOCTYPE html>
 <html>
@@ -237,7 +253,8 @@
             const timeStr = d + " " + mNames[m] + " | " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
             document.querySelectorAll('.current-time-inline').forEach(el => el.innerText = "📅 " + timeStr);
             document.querySelectorAll('tr').forEach(row => {
-                const rowDay = parseInt(row.cells[0].innerText);
+                const rCell = row.cells[0]; if(!rCell) return;
+                const rowDay = parseInt(rCell.innerText);
                 const parentHeader = row.closest('table').previousElementSibling.innerText;
                 if(rowDay === d && parentHeader.includes(mNames[m]) && parentHeader.includes(y)) {
                     row.classList.add('active-row');
@@ -260,7 +277,7 @@
         const clip = document.getElementById('hiddenClipboard');
         clip.value = finalCode; clip.style.display="block"; clip.select();
         document.execCommand('copy'); clip.style.display="none";
-        alert("✅ კოდი სინქრონიზებულია და დაკოპირებულია!");
+        alert("✅ კოდი სინქრონიზებულია (ადმინისტრაციის Viber-ით) და დაკოპირებულია!");
     }
     window.onload = updateUI;
 </script>
