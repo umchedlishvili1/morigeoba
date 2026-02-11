@@ -2,36 +2,38 @@
 <html lang="ka">
 <head>
     <meta charset="UTF-8">
-    <title>Duty Manager - Real Calendar Sync</title>
+    <title>Duty Manager - Admin Contact Sync</title>
     <style>
         :root { --dark: #1e272e; --blue: #00d2ff; --viber: #7360f2; --red: #ff3f34; --green: #05c46b; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: #f1f2f6; overflow: hidden; }
-        
         #sidebar { width: 380px; background: var(--dark); color: white; padding: 25px; overflow-y: auto; flex-shrink: 0; border-right: 1px solid rgba(255,255,255,0.1); }
         .box { background: rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; margin-bottom: 20px; }
         h3 { color: var(--blue); margin-top: 0; font-size: 13px; text-transform: uppercase; }
         input { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: none; background: #2f3542; color: white; box-sizing: border-box; }
-        
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 5px; font-size: 13px; }
         .count-badge { background: var(--blue); color: #000; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 11px; margin-left: 10px; }
         .remove-btn { color: var(--red); cursor: pointer; font-weight: bold; font-size: 18px; margin-left: 10px; }
-
+        
         #main { flex-grow: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         #canvas { width: 100%; max-width: 520px; background: white; border-radius: 40px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
         
+        #weekend-summary { width: 300px; background: #fff; border-left: 1px solid #ddd; padding: 20px; overflow-y: auto; flex-shrink: 0; }
+        .summary-card { background: #fff1f0; border: 1px solid #ffccc7; padding: 10px; border-radius: 10px; margin-bottom: 10px; font-size: 13px; }
+        .summary-card b { color: var(--red); }
+
         .live-banner { background: #000; color: white; padding: 25px; border-radius: 30px; text-align: center; margin-bottom: 25px; border-bottom: 5px solid var(--blue); }
         .clock { font-size: 45px; font-weight: 900; color: var(--blue); }
-        
         .row-container { padding: 12px 15px; border-bottom: 1px solid #eee; transition: 0.3s; }
         .today-active { background: var(--red) !important; color: white !important; border-radius: 25px; box-shadow: 0 5px 15px rgba(255,63,52,0.4); }
-        /* შაბათ-კვირის სტილი მენეჯერში */
         .weekend-active { background: #fff1f0; color: var(--red); }
-        
         select { border: 1px solid #ddd; padding: 6px; border-radius: 8px; font-weight: bold; width: 180px; }
-
         .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
         .btn-shuffle { background: #8e44ad; color: white; }
         .btn-gen { background: var(--green); color: white; font-size: 18px; margin-top: 20px; }
+        
+        /* პასუხისმგებლების ღილაკები მენეჯერში */
+        .adm-call-btn { text-decoration: none; background: #2ecc71; color: white; padding: 2px 8px; border-radius: 5px; font-size: 12px; margin-left: 5px; }
+        .adm-viber-btn { text-decoration: none; background: #7360f2; color: white; padding: 2px 8px; border-radius: 5px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -41,11 +43,11 @@
     <div class="box">
         <h3>📅 პარამეტრები</h3>
         <input type="month" id="workMonth" onchange="initApp()">
-        <button class="btn btn-shuffle" onclick="shuffleAndAssign()">🎲 სიის არევა და განაწილება</button>
+        <button class="btn btn-shuffle" onclick="smartDistribute()">⚖️ სამართლიანი განაწილება</button>
     </div>
     
     <div class="box">
-        <h3>👥 პერსონალი (რაოდენობა თვეში)</h3>
+        <h3>👥 პერსონალი</h3>
         <input type="text" id="addName" placeholder="სახელი გვარი">
         <input type="text" id="addPhone" placeholder="ტელეფონი">
         <button onclick="addToStaff()" style="width:100%; padding:10px; background:var(--blue); border:none; border-radius:6px; font-weight:bold; cursor:pointer;">+ დამატება</button>
@@ -73,6 +75,11 @@
         <div id="adminFooter"></div>
     </div>
     <button class="btn btn-gen" onclick="exportFinal()">📋 საბოლოო კოდის კოპირება</button>
+</div>
+
+<div id="weekend-summary">
+    <h3 style="color:var(--red); font-size:14px; border-bottom:2px solid #eee; padding-bottom:10px;">🏠 შაბათ-კვირის დაიჯესტი</h3>
+    <div id="weekendListUI"></div>
 </div>
 
 <script>
@@ -113,25 +120,31 @@
         }
     }
 
-    function shuffleAndAssign() {
-        if(!document.getElementById('workMonth').value) return alert("ჯერ აირჩიეთ თვე!");
-        initApp(true);
-    }
-
-    function initApp(shouldShuffle = false) {
+    function smartDistribute() {
         const mVal = document.getElementById('workMonth').value;
-        if(!mVal) return;
+        if(!mVal) return alert("ჯერ აირჩიეთ თვე!");
         const [year, month] = mVal.split('-');
         const daysInMonth = new Date(year, month, 0).getDate();
+
+        let tempStaff = [...staff].sort(() => Math.random() - 0.5);
+        let weekendStaff = [...staff].sort(() => Math.random() - 0.5);
         
-        let currentStaff = [...staff];
-        if(shouldShuffle) currentStaff.sort(() => Math.random() - 0.5);
-        
+        let wIdx = 0, rIdx = 0;
         schedule = [];
+
         for(let d=1; d<=daysInMonth; d++) {
-            schedule.push({ day: d, person: currentStaff[(d-1) % currentStaff.length] });
+            let dObj = new Date(year, month-1, d);
+            let isWk = [0, 6].includes(dObj.getDay());
+            let selectedPerson = isWk ? weekendStaff[wIdx++ % weekendStaff.length] : tempStaff[rIdx++ % tempStaff.length];
+            schedule.push({ day: d, person: selectedPerson });
         }
         render();
+    }
+
+    function initApp() {
+        const mVal = document.getElementById('workMonth').value;
+        if(!mVal) return;
+        smartDistribute();
     }
 
     function render() {
@@ -149,8 +162,12 @@
             </div>`).join('');
         
         document.getElementById('adminListUI').innerHTML = admins.map((a, i) => `
-            <div class="list-item"><span>🛡️ ${a.name}</span><span class="remove-btn" onclick="admins.splice(${i},1);render()">×</span></div>`).join('');
+            <div class="list-item">
+                <span>🛡️ ${a.name}</span>
+                <span class="remove-btn" onclick="admins.splice(${i},1);render()">×</span>
+            </div>`).join('');
 
+        let weekendHtml = "";
         if(mVal) {
             const [year, month] = mVal.split('-');
             const today = new Date();
@@ -168,12 +185,28 @@
                             <select onchange="updateDuty(${idx}, this.value)">${options}</select>
                         </div>
                     </div>`;
+                
+                if(isWeekend) {
+                    weekendHtml += `<div class="summary-card"><b>${item.day} ${kaDays[dObj.getDay()]}</b><br>${item.person.name}</div>`;
+                }
             });
             document.getElementById('scheduleBody').innerHTML = html;
+            document.getElementById('weekendListUI').innerHTML = weekendHtml || "<small>აირჩიეთ თვე</small>";
         }
 
         let admH = `<div style="margin-top:25px; padding:20px; background:#fff9e6; border-radius:25px; border:2px dashed #f1c40f;"><h4 style="text-align:center;margin:0 0 10px 0;">🛡️ პასუხისმგებლები</h4>`;
-        admins.forEach(a => admH += `<div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:5px;"><span>${a.name}</span><b>${a.phone}</b></div>`);
+        admins.forEach(a => {
+            let p = a.phone.replace(/\s/g,'');
+            admH += `
+            <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:10px; align-items:center;">
+                <span>${a.name}</span>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <b>${a.phone}</b>
+                    <a href="viber://chat?number=%2B995${p.slice(-9)}" class="adm-viber-btn">V</a>
+                    <a href="tel:${p}" class="adm-call-btn">📞</a>
+                </div>
+            </div>`;
+        });
         document.getElementById('adminFooter').innerHTML = admH + '</div>';
         
         syncTodayInfo();
@@ -187,7 +220,6 @@
     function syncTodayInfo() {
         const n = new Date();
         const mVal = document.getElementById('workMonth').value;
-        
         document.getElementById('liveClock').innerText = n.toLocaleTimeString('ka-GE');
         document.getElementById('liveDate').innerText = "დღეს არის: " + n.getDate() + " " + kaMonths[n.getMonth()];
 
@@ -238,7 +270,6 @@
     .clock { font-size: 45px; font-weight: 900; color: #00d2ff; }
     .r { display: flex; align-items: center; padding: 20px 15px; border-bottom: 1px solid #eee; justify-content: space-between; }
     .act { background: #ff3f34 !important; color: white !important; border-radius: 25px; font-weight: bold; transform: scale(1.02); box-shadow: 0 5px 15px rgba(255,63,52,0.4); }
-    /* შაბათ-კვირის გაწითლება */
     .wk { background: #fff1f0; color: #ff3f34; }
     .name { font-size: 20px; }
     .phone { font-size: 18px; font-weight: 800; color: #2d3436; display: block; margin-top: 5px; }
@@ -254,7 +285,17 @@
     <h3 style="text-align:center;">${kaMonths[month-1]} ${year}</h3>
     ${rows}
     <div class="adm"><h4 style="text-align:center;margin:0 0 10px 0;">🛡️ პასუხისმგებლები</h4>
-    ${admins.map(a=>`<div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:15px;"><span>${a.name}</span><b>${a.phone}</b></div>`).join('')}
+    ${admins.map(a=>{
+        let p = a.phone.replace(/\s/g,'');
+        return `<div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:15px; align-items:center;">
+            <span>${a.name}</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <b>${a.phone}</b>
+                <a href="viber://chat?number=%2B995${p.slice(-9)}" style="text-decoration:none; background:#7360f2; color:white; padding:5px 10px; border-radius:8px; font-size:12px;">V</a>
+                <a href="tel:${p}" style="text-decoration:none; background:#2ecc71; color:white; padding:5px 10px; border-radius:8px;">📞</a>
+            </div>
+        </div>`
+    }).join('')}
     </div>
 </div>
 <script>
@@ -276,7 +317,7 @@
         const area = document.createElement('textarea');
         area.value = final; document.body.appendChild(area); area.select();
         document.execCommand('copy'); document.body.removeChild(area);
-        alert("✅ კოდი დაკოპირებულია! შაბათ-კვირა მონიშნულია წითლად.");
+        alert("✅ კოდი დაკოპირებულია! პასუხისმგებლების ღილაკები დამატებულია.");
     }
     render();
 </script>
