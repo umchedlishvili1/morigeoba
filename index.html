@@ -1,178 +1,345 @@
-<!DOCTYPE html>
-<html lang="ka">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DutyPlanner Pro - Vibrant Edition</title>
-    <style>
-        :root { --primary: #00d2ff; --viber: #7360f2; --dark: #1e272e; --accent: #ef5777; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { width: 360px; background: var(--dark); color: white; padding: 20px; overflow-y: auto; flex-shrink: 0; box-shadow: 4px 0 15px rgba(0,0,0,0.3); }
-        .input-group { margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        label { display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 8px; color: var(--primary); font-weight: 800; letter-spacing: 1px; }
-        input { background: #2f3542; border: 1px solid #57606f; color: white; padding: 10px; border-radius: 8px; width: 100%; box-sizing: border-box; outline: none; margin-bottom: 5px; }
-        .stats-table { width: 100%; font-size: 13px; margin-top: 10px; }
-        .count-badge { background: var(--primary); color: #000; padding: 2px 10px; border-radius: 12px; font-weight: 900; }
-        #main { flex-grow: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        #live-container { width: 100%; max-width: 550px; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
-        .btn { padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; width: 100%; transition: 0.3s; margin-top: 5px; display: block; text-align: center; text-decoration: none; font-size: 14px; }
-        .btn-gen { background: linear-gradient(135deg, #0fbcf9, #4361ee); color: white; }
-        .btn-copy { background: linear-gradient(135deg, #05c46b, #0be881); color: white; font-size: 18px; margin-top: 20px; height: 60px; }
-        .preview-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .preview-table td { padding: 18px 12px; background: #f8f9fa; border-bottom: 1px solid #eee; font-size: 15px; }
-        .weekend-row td { background: #fff5f6 !important; border-bottom: 1px solid #fed330; }
-    </style>
-</head>
-<body>
-
-<div id="sidebar">
-    <h1 style="margin:0 0 20px 0; color: var(--primary); font-size: 26px;">Duty<span style="color:white; font-weight:200;">Pro</span></h1>
-    <div class="input-group">
-        <label>📅 პერიოდი</label>
-        <div style="display:flex; gap:8px;"><input type="month" id="startMonth"><input type="month" id="endMonth"></div>
-        <button class="btn btn-gen" onclick="generateLogic()">🚀 გრაფიკის აგება</button>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+    body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 15px; margin: 0; }
+    .card { max-width: 480px; width: 100%; background: white; border-radius: 40px; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); }
+    .top { background: #1a1a1a; color: white; padding: 30px; border-radius: 30px; text-align: center; margin-bottom: 25px; border-bottom: 6px solid #00d2ff; }
+    .clock { font-size: 45px; font-weight: 900; color: #00d2ff; }
+    .r { display: flex; align-items: center; padding: 20px 15px; border-bottom: 1px solid #eee; justify-content: space-between; }
+    .act { background: #ff3f34 !important; color: white !important; border-radius: 25px; font-weight: bold; transform: scale(1.02); }
+    .wk { background: #fcfcfc; }
+    .name { font-size: 19px; margin-bottom: 2px; }
+    .phone { font-size: 18px; font-weight: 800; color: #2d3436; display: block; margin-top: 5px; }
+    .act .phone { color: white; }
+    .btns { display: flex; gap: 10px; }
+    .v-btn { background: #7360f2; color: white; text-decoration: none; padding: 10px 15px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .c-btn { background: #2ecc71; color: white; text-decoration: none; padding: 10px 15px; border-radius: 12px; font-size: 16px; }
+    .adm { margin-top: 30px; background: #fff9e6; padding: 25px; border-radius: 30px; border: 2px dashed #f1c40f; }
+</style></head><body>
+<div class="card">
+    <div class="top"><div id="t_d"></div><div id="t_c" class="clock">00:00:00</div><div id="t_n" style="font-size:26px; font-weight:bold; margin-top:10px;">-</div></div>
+    <h3 style="text-align:center; color:#333;">თებერვალი 2026</h3>
+    
+            <div class="r ${1==new Date().getDate()?'act':''} wk" data-d="1">
+                <div class="info">
+                    <div class="date"><b>1</b> კვირა</div>
+                    <div class="name">გიორგი ლომიძე</div>
+                    <div class="phone">555 558 222</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995555558222" class="v-btn">VIBER</a>
+                    <a href="tel:555558222" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${2==new Date().getDate()?'act':''} " data-d="2">
+                <div class="info">
+                    <div class="date"><b>2</b> ორშაბათი</div>
+                    <div class="name">ვასილ გოგალაძე</div>
+                    <div class="phone">557 949 827</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995557949827" class="v-btn">VIBER</a>
+                    <a href="tel:557949827" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${3==new Date().getDate()?'act':''} " data-d="3">
+                <div class="info">
+                    <div class="date"><b>3</b> სამშაბათი</div>
+                    <div class="name">ბექა ტალახაძე</div>
+                    <div class="phone">551 982 772</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551982772" class="v-btn">VIBER</a>
+                    <a href="tel:551982772" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${4==new Date().getDate()?'act':''} " data-d="4">
+                <div class="info">
+                    <div class="date"><b>4</b> ოთხშაბათი</div>
+                    <div class="name">გიორგი ტარყაშვილი</div>
+                    <div class="phone">577 385 250</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995577385250" class="v-btn">VIBER</a>
+                    <a href="tel:577385250" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${5==new Date().getDate()?'act':''} " data-d="5">
+                <div class="info">
+                    <div class="date"><b>5</b> ხუთშაბათი</div>
+                    <div class="name">ალიკა ყალიჩავა</div>
+                    <div class="phone">551 688 899</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551688899" class="v-btn">VIBER</a>
+                    <a href="tel:551688899" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${6==new Date().getDate()?'act':''} " data-d="6">
+                <div class="info">
+                    <div class="date"><b>6</b> პარასკევი</div>
+                    <div class="name">შალვა გაგნიძე</div>
+                    <div class="phone">551 770 200</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551770200" class="v-btn">VIBER</a>
+                    <a href="tel:551770200" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${7==new Date().getDate()?'act':''} wk" data-d="7">
+                <div class="info">
+                    <div class="date"><b>7</b> შაბათი</div>
+                    <div class="name">გუგა ბალანჩივაძე</div>
+                    <div class="phone">577 978 792</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995577978792" class="v-btn">VIBER</a>
+                    <a href="tel:577978792" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${8==new Date().getDate()?'act':''} wk" data-d="8">
+                <div class="info">
+                    <div class="date"><b>8</b> კვირა</div>
+                    <div class="name">გიორგი ბოწორიშვილი</div>
+                    <div class="phone">591 92 78 31</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995591927831" class="v-btn">VIBER</a>
+                    <a href="tel:591927831" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${9==new Date().getDate()?'act':''} " data-d="9">
+                <div class="info">
+                    <div class="date"><b>9</b> ორშაბათი</div>
+                    <div class="name">გიორგი ლომიძე</div>
+                    <div class="phone">555 558 222</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995555558222" class="v-btn">VIBER</a>
+                    <a href="tel:555558222" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${10==new Date().getDate()?'act':''} " data-d="10">
+                <div class="info">
+                    <div class="date"><b>10</b> სამშაბათი</div>
+                    <div class="name">ვასილ გოგალაძე</div>
+                    <div class="phone">557 949 827</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995557949827" class="v-btn">VIBER</a>
+                    <a href="tel:557949827" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${11==new Date().getDate()?'act':''} " data-d="11">
+                <div class="info">
+                    <div class="date"><b>11</b> ოთხშაბათი</div>
+                    <div class="name">ბექა ტალახაძე</div>
+                    <div class="phone">551 982 772</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551982772" class="v-btn">VIBER</a>
+                    <a href="tel:551982772" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${12==new Date().getDate()?'act':''} " data-d="12">
+                <div class="info">
+                    <div class="date"><b>12</b> ხუთშაბათი</div>
+                    <div class="name">გიორგი ტარყაშვილი</div>
+                    <div class="phone">577 385 250</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995577385250" class="v-btn">VIBER</a>
+                    <a href="tel:577385250" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${13==new Date().getDate()?'act':''} " data-d="13">
+                <div class="info">
+                    <div class="date"><b>13</b> პარასკევი</div>
+                    <div class="name">ალიკა ყალიჩავა</div>
+                    <div class="phone">551 688 899</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551688899" class="v-btn">VIBER</a>
+                    <a href="tel:551688899" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${14==new Date().getDate()?'act':''} wk" data-d="14">
+                <div class="info">
+                    <div class="date"><b>14</b> შაბათი</div>
+                    <div class="name">შალვა გაგნიძე</div>
+                    <div class="phone">551 770 200</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551770200" class="v-btn">VIBER</a>
+                    <a href="tel:551770200" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${15==new Date().getDate()?'act':''} wk" data-d="15">
+                <div class="info">
+                    <div class="date"><b>15</b> კვირა</div>
+                    <div class="name">გუგა ბალანჩივაძე</div>
+                    <div class="phone">577 978 792</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995577978792" class="v-btn">VIBER</a>
+                    <a href="tel:577978792" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${16==new Date().getDate()?'act':''} " data-d="16">
+                <div class="info">
+                    <div class="date"><b>16</b> ორშაბათი</div>
+                    <div class="name">გიორგი ბოწორიშვილი</div>
+                    <div class="phone">591 92 78 31</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995591927831" class="v-btn">VIBER</a>
+                    <a href="tel:591927831" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${17==new Date().getDate()?'act':''} " data-d="17">
+                <div class="info">
+                    <div class="date"><b>17</b> სამშაბათი</div>
+                    <div class="name">გიორგი ლომიძე</div>
+                    <div class="phone">555 558 222</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995555558222" class="v-btn">VIBER</a>
+                    <a href="tel:555558222" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${18==new Date().getDate()?'act':''} " data-d="18">
+                <div class="info">
+                    <div class="date"><b>18</b> ოთხშაბათი</div>
+                    <div class="name">ვასილ გოგალაძე</div>
+                    <div class="phone">557 949 827</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995557949827" class="v-btn">VIBER</a>
+                    <a href="tel:557949827" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${19==new Date().getDate()?'act':''} " data-d="19">
+                <div class="info">
+                    <div class="date"><b>19</b> ხუთშაბათი</div>
+                    <div class="name">ბექა ტალახაძე</div>
+                    <div class="phone">551 982 772</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551982772" class="v-btn">VIBER</a>
+                    <a href="tel:551982772" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${20==new Date().getDate()?'act':''} " data-d="20">
+                <div class="info">
+                    <div class="date"><b>20</b> პარასკევი</div>
+                    <div class="name">გიორგი ტარყაშვილი</div>
+                    <div class="phone">577 385 250</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995577385250" class="v-btn">VIBER</a>
+                    <a href="tel:577385250" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${21==new Date().getDate()?'act':''} wk" data-d="21">
+                <div class="info">
+                    <div class="date"><b>21</b> შაბათი</div>
+                    <div class="name">ალიკა ყალიჩავა</div>
+                    <div class="phone">551 688 899</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551688899" class="v-btn">VIBER</a>
+                    <a href="tel:551688899" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${22==new Date().getDate()?'act':''} wk" data-d="22">
+                <div class="info">
+                    <div class="date"><b>22</b> კვირა</div>
+                    <div class="name">შალვა გაგნიძე</div>
+                    <div class="phone">551 770 200</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551770200" class="v-btn">VIBER</a>
+                    <a href="tel:551770200" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${23==new Date().getDate()?'act':''} " data-d="23">
+                <div class="info">
+                    <div class="date"><b>23</b> ორშაბათი</div>
+                    <div class="name">გუგა ბალანჩივაძე</div>
+                    <div class="phone">577 978 792</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995577978792" class="v-btn">VIBER</a>
+                    <a href="tel:577978792" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${24==new Date().getDate()?'act':''} " data-d="24">
+                <div class="info">
+                    <div class="date"><b>24</b> სამშაბათი</div>
+                    <div class="name">გიორგი ბოწორიშვილი</div>
+                    <div class="phone">591 92 78 31</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995591927831" class="v-btn">VIBER</a>
+                    <a href="tel:591927831" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${25==new Date().getDate()?'act':''} " data-d="25">
+                <div class="info">
+                    <div class="date"><b>25</b> ოთხშაბათი</div>
+                    <div class="name">გიორგი ლომიძე</div>
+                    <div class="phone">555 558 222</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995555558222" class="v-btn">VIBER</a>
+                    <a href="tel:555558222" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${26==new Date().getDate()?'act':''} " data-d="26">
+                <div class="info">
+                    <div class="date"><b>26</b> ხუთშაბათი</div>
+                    <div class="name">ვასილ გოგალაძე</div>
+                    <div class="phone">557 949 827</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995557949827" class="v-btn">VIBER</a>
+                    <a href="tel:557949827" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${27==new Date().getDate()?'act':''} " data-d="27">
+                <div class="info">
+                    <div class="date"><b>27</b> პარასკევი</div>
+                    <div class="name">ბექა ტალახაძე</div>
+                    <div class="phone">551 982 772</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995551982772" class="v-btn">VIBER</a>
+                    <a href="tel:551982772" class="c-btn">📞</a>
+                </div>
+            </div>
+            <div class="r ${28==new Date().getDate()?'act':''} wk" data-d="28">
+                <div class="info">
+                    <div class="date"><b>28</b> შაბათი</div>
+                    <div class="name">გიორგი ტარყაშვილი</div>
+                    <div class="phone">577 385 250</div>
+                </div>
+                <div class="btns">
+                    <a href="viber://chat?number=%2B995577385250" class="v-btn">VIBER</a>
+                    <a href="tel:577385250" class="c-btn">📞</a>
+                </div>
+            </div>
+    <div class="adm"><h4 style="text-align:center;margin:0 0 10px 0;">🛡️ პასუხისმგებლები</h4>
+    <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:15px;"><span>უჩა მჭედლიშვილი</span><b>599 47 00 33</b></div><div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:15px;"><span>თემო გელაშვილი</span><b>577 698 890</b></div>
     </div>
-    <div class="input-group"><label>📊 მორიგეობების ჯამი</label><div id="statsContent"></div></div>
-    <div class="input-group">
-        <label>👥 პერსონალი</label>
-        <input type="text" id="staffName" placeholder="სახელი გვარი"><input type="text" id="staffPhone" placeholder="ტელეფონი">
-        <button class="btn" style="background:#4361ee; color:white;" onclick="addItem('staff')">+ დამატება</button>
-        <div id="staffListUI" style="margin-top:10px; max-height: 100px; overflow-y: auto;"></div>
-    </div>
-    <div class="input-group">
-        <label>🛡️ ადმინისტრაცია</label>
-        <input type="text" id="adminName" placeholder="სახელი"><input type="text" id="adminPhone" placeholder="ტელეფონი">
-        <button class="btn" style="background:#ffa801; color:black;" onclick="addItem('admin')">+ დამატება</button>
-    </div>
-    <button class="btn btn-copy" onclick="copyFinalHTML()">📋 კოდის კოპირება</button>
 </div>
-
-<div id="main"><div id="live-container"></div></div>
-<textarea id="hiddenClipboard" style="display:none;"></textarea>
-
 <script>
-    let staff = JSON.parse(localStorage.getItem('pro_staff_v5')) || [];
-    let admins = JSON.parse(localStorage.getItem('pro_admins_v5')) || [];
-    let schedule = [];
-    const kaMonths = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
-    const kaDays = ["კვი", "ორშ", "სამ", "ოთხ", "ხუთ", "პარ", "შაბ"];
-
-    function addItem(type) {
-        const n = document.getElementById(type + 'Name'), p = document.getElementById(type + 'Phone');
-        if(!n.value) return;
-        if(type === 'staff') staff.push({name: n.value, phone: p.value});
-        else admins.push({name: n.value, phone: p.value});
-        save(); updateUI(); n.value=""; p.value="";
-    }
-    function save() { localStorage.setItem('pro_staff_v5', JSON.stringify(staff)); localStorage.setItem('pro_admins_v5', JSON.stringify(admins)); }
-    function updateUI() {
-        document.getElementById('staffListUI').innerHTML = staff.map((s, i) => `<div style="font-size:12px; margin-top:4px;">${s.name} <span style="color:red; cursor:pointer;" onclick="staff.splice(${i},1);save();updateUI();">×</span></div>`).join('');
-        updateStats();
-    }
-    function updateStats() {
-        const counts = {}; schedule.forEach(d => counts[d.name] = (counts[d.name] || 0) + 1);
-        document.getElementById('statsContent').innerHTML = staff.map(s => `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>${s.name}</span><span class="count-badge">${counts[s.name] || 0}</span></div>`).join('');
-    }
-    function generateLogic() {
-        const sM = document.getElementById('startMonth').value, eM = document.getElementById('endMonth').value;
-        if(!sM || !eM || staff.length === 0) return alert("შეავსეთ მონაცემები!");
-        schedule = [];
-        let curr = new Date(sM + "-01"), end = new Date(eM + "-01");
-        end.setMonth(end.getMonth() + 1); end.setDate(0);
-        let i = 0;
-        while(curr <= end) {
-            let p = staff[i % staff.length];
-            schedule.push({ d: curr.getDate(), m: curr.getMonth(), y: curr.getFullYear(), dw: kaDays[curr.getDay()], isW: (curr.getDay() === 0 || curr.getDay() === 6), name: p.name, phone: p.phone });
-            curr.setDate(curr.getDate() + 1); i++;
-        }
-        renderPreview();
-    }
-    function renderPreview() {
-        if(schedule.length === 0) return;
-        updateStats();
-        let html = `<div style="background:linear-gradient(135deg, #1e272e, #2f3640); color:white; padding:35px; border-radius:25px; text-align:center; margin-bottom:30px; box-shadow: 0 15px 35px rgba(0,210,255,0.2); border:1px solid var(--primary);">
-            <div style="font-size:11px; text-transform:uppercase; color:var(--primary); letter-spacing:3px; font-weight:900;">აქტიური მორიგე</div>
-            <div id="sn-live" style="font-size:32px; font-weight:900; margin:15px 0;">(სინქრონიზაცია...)</div>
-            <div id="sa-live"></div>
-        </div>`;
-        let lastM = -1;
-        schedule.forEach((day, idx) => {
-            if(day.m !== lastM) {
-                if(lastM !== -1) html += `</tbody></table>`;
-                html += `<div style="background:#2f3542; color:white; padding:12px 20px; margin:40px 0 15px 0; font-weight:800; border-radius:12px; font-size:16px;">📅 ${kaMonths[day.m]} ${day.y}</div><table class="preview-table"><tbody>`;
-                lastM = day.m;
-            }
-            const options = staff.map(s => `<option value="${s.name}" ${s.name === day.name ? 'selected' : ''}>${s.name}</option>`).join('');
-            html += `<tr class="${day.isW ? 'weekend-row' : ''}">
-                <td style="width:70px; font-weight:900; color:#57606f;">${day.d} <span style="font-size:10px; font-weight:400; display:block;">${day.dw}</span></td>
-                <td><select onchange="updatePerson(${idx}, this.value)" style="border:none; background:none; font-weight:800; font-size:16px; color:#2f3542; cursor:pointer; width:100%;">${options}</select></td>
-                <td style="text-align:right;"><b>${day.phone}</b></td>
-            </tr>`;
+    const kaD=["კვირა","ორშაბათი","სამშაბათი","ოთხშაბათი","ხუთშაბათი","პარასკევი","შაბათი"], kaM=["იანვარი","თებერვალი","მარტი","აპრილი","მაისი","ივნისი","ივლისი","აგვისტო","სექტემბერი","ოქტომბერი","ნოემბერი","დეკემბერი"];
+    function tick() {
+        const n=new Date(), d=n.getDate();
+        document.getElementById('t_c').innerText=n.toLocaleTimeString('ka-GE');
+        document.getElementById('t_d').innerText=kaD[n.getDay()]+", "+d+" "+kaM[n.getMonth()];
+        document.querySelectorAll('.r').forEach(r=>{
+            if(r.dataset.d==d){ r.classList.add('act'); document.getElementById('t_n').innerText=r.querySelector('.name').innerText; }
+            else r.classList.remove('act');
         });
-        document.getElementById('live-container').innerHTML = html + `</tbody></table>`;
-    }
-    function updatePerson(idx, newName) {
-        const p = staff.find(s => s.name === newName);
-        schedule[idx].name = p.name; schedule[idx].phone = p.phone; renderPreview();
-    }
-    function copyFinalHTML() {
-        let temp = document.createElement('div');
-        temp.innerHTML = document.getElementById('live-container').innerHTML;
-        temp.querySelectorAll('select').forEach(sel => { let b = document.createElement('b'); b.innerText = sel.value; sel.parentNode.replaceChild(b, sel); });
-
-        const getLinks = (phone, isLive) => {
-            let num = phone.replace(/\D/g,'');
-            let bStyle = isLive ? 'background:white; color:#000;' : 'background:#4361ee; color:white;';
-            let vStyle = isLive ? 'background:rgba(255,255,255,0.2); border:1px solid white;' : 'background:#7360f2; color:white;';
-            return `<div style="display:flex; gap:6px; justify-content:flex-end; margin-top:5px;">
-                <a href="tel:${num}" style="${bStyle} text-decoration:none; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:900;">📞 ${phone}</a>
-                <a href="viber://contact?number=%2B995${num.slice(-9)}" style="${vStyle} text-decoration:none; padding:10px 14px; border-radius:10px; font-size:11px; font-weight:900; color:white;">VIBER</a>
-            </div>`;
-        };
-        temp.querySelectorAll('tr').forEach(tr => { let cell = tr.cells[2]; if(cell) cell.innerHTML = getLinks(cell.innerText, false); });
-
-        let admBox = `<div style="margin-top:50px; background:#fff; border:3px solid #ffa801; padding:25px; border-radius:30px; text-align:center;">
-            <div style="font-size:12px; font-weight:900; color:#ffa801; text-transform:uppercase; margin-bottom:20px; letter-spacing:2px;">🛡️ ადმინისტრაციული ხაზი</div>` + 
-            admins.map(a => `<div style="margin-bottom:20px; border-bottom:1px dashed #ddd; padding-bottom:15px;">
-                <div style="font-size:18px; font-weight:900; color:#1e272e; margin-bottom:8px;">${a.name}</div>${getLinks(a.phone, false)}
-            </div>`).join('') + `</div>`;
-
-        const finalCode = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
-            .wrapper { max-width: 480px; margin: auto; background: white; padding: 25px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
-            .active-row { background: linear-gradient(135deg, #4361ee, #00d2ff) !important; color: white !important; border-radius: 20px; box-shadow: 0 10px 25px rgba(67, 97, 238, 0.4); transform: scale(1.03); z-index: 10; position: relative; }
-            .active-row td { color: white !important; border: none !important; }
-            .active-row a { background: white !important; color: #4361ee !important; }
-            .active-row a[href^="viber"] { background: rgba(255,255,255,0.2) !important; color: white !important; border: 1px solid white; }
-            .weekend-row td { background: #fff5f6; }
-            table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-            td { padding: 18px 12px; background: #fcfcfc; border-bottom: 2px solid #f1f1f1; font-size: 15px; transition: 0.3s; }
-            td:first-child { border-radius: 15px 0 0 15px; border-left: 5px solid #eee; }
-            td:last-child { border-radius: 0 15px 15px 0; }
-        </style></head><body>
-        <div class="wrapper">${temp.innerHTML.replace('(სინქრონიზაცია...)', '<div id="sn" style="font-size:32px; font-weight:900;">...</div>').replace('<div id="sa-live"></div>', '<div id="sa" style="margin-top:15px;"></div>') + admBox}</div>
-        <script>
-            function sync() {
-                const now = new Date(); const d = now.getDate(), m = now.getMonth(), y = now.getFullYear();
-                const mNames = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
-                document.querySelectorAll('tr').forEach(row => {
-                    const rDay = parseInt(row.cells[0].innerText);
-                    const pHead = row.closest('table').previousElementSibling.innerText;
-                    if(rDay === d && pHead.includes(mNames[m]) && pHead.includes(y)) {
-                        row.classList.add('active-row');
-                        document.getElementById('sn').innerText = row.cells[1].innerText;
-                        document.getElementById('sa').innerHTML = row.cells[2].innerHTML;
-                    } else row.classList.remove('active-row');
-                });
-            } setInterval(sync, 1000); sync();
-        <\/script></body></html>`;
-
-        const clip = document.getElementById('hiddenClipboard');
-        clip.value = finalCode; clip.style.display="block"; clip.select();
-        document.execCommand('copy'); clip.style.display="none";
-        alert("✅ ფერადი და სრულყოფილი კოდი დაკოპირებულია!");
-    }
-</script>
-</body>
-</html>
+    } setInterval(tick, 1000); tick();
+</script></body></html>
