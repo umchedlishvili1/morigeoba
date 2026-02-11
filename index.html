@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DutyPlanner Pro - Ultimate Generator</title>
+    <title>DutyPlanner Pro - IT Generator</title>
     <style>
         :root { --primary: #4361ee; --dark-red: #8b0000; --bg: #f0f2f5; --sidebar-bg: #1e1e2d; --viber-bg: #7360f2; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -28,6 +28,7 @@
 
         .list-item { display: flex; justify-content: space-between; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 5px; margin-top: 5px; font-size: 13px; border-left: 3px solid var(--primary); }
         .list-item span.remove { color: #ff5e5e; cursor: pointer; font-weight: bold; padding: 0 5px; }
+        .weekend-row { background: #fff5f5 !important; }
     </style>
 </head>
 <body>
@@ -54,7 +55,7 @@
         <input type="text" id="staffName" placeholder="სახელი გვარი">
         <input type="text" id="staffPhone" placeholder="577 00 00 00" style="margin-top:5px;">
         <button class="btn" style="background:var(--primary); color:white;" onclick="addItem('staff')">+ სიაში დამატება</button>
-        <div id="staffListUI" style="margin-top:12px; max-height: 140px; overflow-y: auto;"></div>
+        <div id="staffListUI" style="margin-top:12px; max-height: 200px; overflow-y: auto;"></div>
     </div>
 
     <div class="input-group">
@@ -72,7 +73,7 @@
     <div id="schedulePreview">
         <div style="text-align:center; color:#888; margin-top:100px;">
             <h3>განრიგი ცარიელია</h3>
-            <p>შეავსეთ მონაცემები და დააჭირეთ გენერირებას</p>
+            <p>შეარჩიეთ პერიოდი და დააჭირეთ გენერირებას</p>
         </div>
     </div>
 </div>
@@ -80,8 +81,27 @@
 <textarea id="hiddenClipboard" style="display:none;"></textarea>
 
 <script>
-    let staff = JSON.parse(localStorage.getItem('pro_staff')) || [];
-    let admins = JSON.parse(localStorage.getItem('pro_admins')) || [];
+    // ავტომატურად შევსებული სია
+    const initialStaff = [
+        {name: "შალვა გაგნიძე", phone: "555 555 555"},
+        {name: "გიორგი ლომიძე", phone: "111 222 33"},
+        {name: "ვასილ გოგალაძე", phone: "2232"},
+        {name: "თანამშრომელი 4", phone: "5XX XX XX XX"},
+        {name: "თანამშრომელი 5", phone: "5XX XX XX XX"},
+        {name: "თანამშრომელი 6", phone: "5XX XX XX XX"},
+        {name: "თანამშრომელი 7", phone: "5XX XX XX XX"},
+        {name: "თანამშრომელი 8", phone: "5XX XX XX XX"},
+        {name: "თანამშრომელი 9", phone: "5XX XX XX XX"},
+        {name: "თანამშრომელი 10", phone: "5XX XX XX XX"}
+    ];
+
+    const initialAdmins = [
+        {name: "ადმინისტრატორი 1", phone: "5XX XX XX XX"},
+        {name: "ადმინისტრატორი 2", phone: "5XX XX XX XX"}
+    ];
+
+    let staff = JSON.parse(localStorage.getItem('pro_staff')) || initialStaff;
+    let admins = JSON.parse(localStorage.getItem('pro_admins')) || initialAdmins;
     let schedule = [];
     const kaMonths = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
 
@@ -105,17 +125,16 @@
 
     function generateLogic() {
         const sM = document.getElementById('startMonth').value, eM = document.getElementById('endMonth').value;
-        if(!sM || !eM || staff.length === 0) return alert("შეავსეთ თარიღები და პერსონალი!");
+        if(!sM || !eM || staff.length === 0) return alert("შეავსეთ თარიღები!");
         
         schedule = [];
         let start = new Date(sM + "-01"), end = new Date(eM + "-01");
         end.setMonth(end.getMonth() + 1); end.setDate(0);
 
-        let pool = [...staff].sort(() => Math.random() - 0.5);
         let curr = new Date(start), i = 0;
 
         while(curr <= end) {
-            let p = pool[i % pool.length];
+            let p = staff[i % staff.length]; // თანმიმდევრული გადანაწილება
             schedule.push({
                 d: curr.getDate(), m: curr.getMonth(), y: curr.getFullYear(),
                 isW: (curr.getDay() === 0 || curr.getDay() === 6),
@@ -145,7 +164,7 @@
                 if(lastM !== -1) html += `</tbody></table>`;
                 html += `<div style="background:#f8f9fa; padding:12px; border-radius:8px; border-left:5px solid #8b0000; margin:25px 0 10px 0; display:flex; justify-content:space-between; align-items:center;">
                     <b style="font-size:15px;">${kaMonths[day.m]} ${day.y}</b>
-                    <span class="current-time-inline" style="font-size:12px; color:#d00000; font-weight:bold; background:white; padding:3px 8px; border-radius:4px; border:1px solid #ddd;">📅 იტვირთება...</span>
+                    <span class="current-time-inline" style="font-size:12px; color:#d00000; font-weight:bold; background:white; padding:3px 8px; border-radius:4px; border:1px solid #ddd;">📅...</span>
                 </div><table style="width:100%; border-collapse:collapse;"><tbody>`;
                 lastM = day.m;
             }
@@ -171,17 +190,15 @@
     }
 
     function copyFinalHTML() {
-        const title = document.getElementById('topTitleInput').value;
+        if(schedule.length === 0) return alert("ჯერ დააგენერირეთ განრიგი!");
         let temp = document.createElement('div');
         temp.innerHTML = document.getElementById('schedulePreview').innerHTML;
         
-        // სელექტების ტექსტად ქცევა
         temp.querySelectorAll('select').forEach(sel => {
             let b = document.createElement('b'); b.innerText = sel.value;
             sel.parentNode.replaceChild(b, sel);
         });
 
-        // ტელეფონების და ვიბერის ღილაკების გენერირება ცხრილში
         temp.querySelectorAll('tr').forEach(tr => {
             let phoneCell = tr.cells[2];
             if(phoneCell) {
@@ -202,8 +219,8 @@
     <style>
         body { font-family: sans-serif; background: #f4f7f6; padding: 10px; margin: 0; }
         .wrapper { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        .today-card { background: linear-gradient(135deg, #8b0000, #c0392b); color: white; padding: 22px; border-radius: 12px; text-align: center; margin-bottom: 25px; box-shadow: 0 8px 16px rgba(139,0,0,0.2); }
-        .active-row { background: #fff3cd !important; border: 2px solid #8b0000; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        .today-card { background: linear-gradient(135deg, #8b0000, #c0392b); color: white; padding: 22px; border-radius: 12px; text-align: center; margin-bottom: 25px; }
+        .active-row { background: #fff3cd !important; border: 2px solid #8b0000; }
         .weekend-row { background: #fff9f9; color: #d9534f; }
         td { border-bottom: 1px solid #eee; padding: 12px 8px; font-size: 14px; }
         .btn-sync-call { background: white; color: #8b0000 !important; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; display: block; margin-bottom: 5px; }
@@ -217,21 +234,17 @@
         function sync() {
             const now = new Date();
             const d = now.getDate(), m = now.getMonth(), y = now.getFullYear();
-            const timeStr = d + " " + mNames[m] + " | " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0') + ":" + String(now.getSeconds()).padStart(2,'0');
-            
+            const timeStr = d + " " + mNames[m] + " | " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
             document.querySelectorAll('.current-time-inline').forEach(el => el.innerText = "📅 " + timeStr);
-            
             document.querySelectorAll('tr').forEach(row => {
                 const rowDay = parseInt(row.cells[0].innerText);
                 const parentHeader = row.closest('table').previousElementSibling.innerText;
-                
                 if(rowDay === d && parentHeader.includes(mNames[m]) && parentHeader.includes(y)) {
                     row.classList.add('active-row');
                     const name = row.cells[1].innerText;
                     const phoneLink = row.cells[2].querySelector('a').getAttribute('href');
                     const phoneNum = row.cells[2].querySelector('a').innerText;
                     const viberLink = row.cells[2].querySelectorAll('a')[1].getAttribute('href');
-                    
                     document.getElementById('sync-name').innerText = name;
                     document.getElementById('sync-actions').innerHTML = \`
                         <a href="\${phoneLink}" class="btn-sync-call">\${phoneNum}</a>
