@@ -3,77 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DutyPlanner Pro - Ultimate Generator</title>
+    <title>DutyPlanner Pro - Live Edit & Stats</title>
     <style>
-        :root { --primary: #4361ee; --dark-red: #8b0000; --bg: #f0f2f5; --sidebar-bg: #1e1e2d; --viber-bg: #7360f2; }
+        :root { --primary: #4361ee; --dark-red: #8b0000; --bg: #e9ecef; --sidebar-bg: #1e1e2d; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* Sidebar Styling */
-        #sidebar { width: 360px; background: var(--sidebar-bg); color: white; padding: 25px; overflow-y: auto; flex-shrink: 0; box-shadow: 4px 0 15px rgba(0,0,0,0.2); }
-        .input-group { margin-bottom: 18px; background: rgba(255,255,255,0.06); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        label { display: block; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; color: var(--primary); font-weight: 800; letter-spacing: 1px; }
-        input, select { background: #2a2a3d; border: 1px solid #444; color: white; padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); background: #32324a; }
+        /* Sidebar */
+        #sidebar { width: 350px; background: var(--sidebar-bg); color: white; padding: 20px; overflow-y: auto; flex-shrink: 0; box-shadow: 4px 0 15px rgba(0,0,0,0.3); }
+        .input-group { margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        label { display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: var(--primary); font-weight: 800; }
+        input, select { background: #2a2a3d; border: 1px solid #444; color: white; padding: 10px; border-radius: 5px; width: 100%; box-sizing: border-box; outline: none; }
+        
+        /* Stats Panel */
+        #statsPanel { margin-top: 15px; padding: 12px; background: rgba(67, 97, 238, 0.1); border-radius: 8px; border: 1px solid var(--primary); }
+        .stat-line { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        /* Main Preview Area */
+        #main { flex-grow: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        #live-container { width: 100%; max-width: 500px; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); position: relative; }
         
         /* Buttons */
-        .btn { padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.3s; margin-top: 8px; display: block; text-align: center; text-decoration: none; }
-        .btn-gen { background: #9b59b6; color: white; }
-        .btn-gen:hover { background: #8e44ad; }
-        .btn-copy { background: #2ecc71; color: white; font-size: 16px; margin-top: 25px; height: 55px; box-shadow: 0 4px 15px rgba(46,204,113,0.3); }
-        .btn-copy:hover { background: #27ae60; transform: translateY(-2px); }
+        .btn { padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; width: 100%; transition: 0.3s; margin-top: 5px; display: block; text-align: center; text-decoration: none; }
+        .btn-gen { background: #9b59b6; color: white; margin-top: 10px; }
+        .btn-copy { background: #2ecc71; color: white; font-size: 16px; margin-top: 20px; height: 50px; }
 
-        /* Preview Area */
-        #main { flex-grow: 1; padding: 30px; overflow-y: auto; background: #e9ecef; display: flex; justify-content: center; }
-        #schedulePreview { width: 100%; max-width: 500px; }
-
-        .list-item { display: flex; justify-content: space-between; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 5px; margin-top: 5px; font-size: 13px; border-left: 3px solid var(--primary); }
-        .list-item span.remove { color: #ff5e5e; cursor: pointer; font-weight: bold; padding: 0 5px; }
-        .weekend-row { background: #fff5f5 !important; }
+        /* Final UI Style inside Preview */
+        .preview-today-card { background: linear-gradient(135deg, #8b0000, #c0392b); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 25px; }
+        .preview-table { width: 100%; border-collapse: collapse; }
+        .preview-table td { padding: 12px 8px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .weekend-row { background: #fff9f9 !important; }
+        .active-row { background: #fff3cd !important; border: 2px solid #8b0000; }
+        
+        .list-item { display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px; opacity: 0.8; }
+        .remove { color: #ff5e5e; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2 style="color:var(--primary); margin: 0 0 25px 0; font-size: 24px;">DutyPlanner <span style="font-weight:200; color:white;">Pro</span></h2>
+    <h2 style="margin:0 0 15px 0; font-size: 20px;">DutyPlanner <span style="font-weight:200;">Pro</span></h2>
     
     <div class="input-group">
-        <label>განრიგის სათაური</label>
-        <input type="text" id="topTitleInput" value="აიტი-ტექნიკური თანამშრომლების განრიგი" oninput="renderPreview()">
-    </div>
-    
-    <div class="input-group">
-        <label>პერიოდი (თვიდან - თვემდე)</label>
-        <div style="display:flex; gap:8px;">
+        <label>პერიოდი</label>
+        <div style="display:flex; gap:5px;">
             <input type="month" id="startMonth">
             <input type="month" id="endMonth">
         </div>
-        <button class="btn btn-gen" onclick="generateLogic()">🎲 განრიგის გენერირება</button>
+        <button class="btn btn-gen" onclick="generateLogic()">🎲 გენერირება</button>
     </div>
 
     <div class="input-group">
-        <label>პერსონალის ბაზა</label>
+        <label>პერსონალის სტატისტიკა (დღეები)</label>
+        <div id="statsContent"></div>
+    </div>
+
+    <div class="input-group">
+        <label>ბაზის მართვა</label>
         <input type="text" id="staffName" placeholder="სახელი გვარი">
-        <input type="text" id="staffPhone" placeholder="577 00 00 00" style="margin-top:5px;">
-        <button class="btn" style="background:var(--primary); color:white;" onclick="addItem('staff')">+ სიაში დამატება</button>
-        <div id="staffListUI" style="margin-top:12px; max-height: 180px; overflow-y: auto;"></div>
+        <input type="text" id="staffPhone" placeholder="ტელეფონი" style="margin-top:5px;">
+        <button class="btn" style="background:var(--primary); color:white;" onclick="addItem('staff')">+ დამატება</button>
+        <div id="staffListUI" style="margin-top:10px; max-height: 120px; overflow-y: auto; border-top: 1px solid #444; padding-top:5px;"></div>
     </div>
 
     <div class="input-group">
         <label>ადმინისტრაცია</label>
-        <input type="text" id="adminName" placeholder="პასუხისმგებელი პირი">
-        <input type="text" id="adminPhone" placeholder="ტელეფონის ნომერი" style="margin-top:5px;">
-        <button class="btn" style="background:#e67e22; color:white;" onclick="addItem('admin')">+ ადმინის დამატება</button>
+        <input type="text" id="adminName" placeholder="სახელი">
+        <input type="text" id="adminPhone" placeholder="ტელეფონი" style="margin-top:5px;">
+        <button class="btn" style="background:#e67e22; color:white;" onclick="addItem('admin')">+ დამატება</button>
         <div id="adminListUI" style="margin-top:10px;"></div>
     </div>
 
-    <button class="btn btn-copy" onclick="copyFinalHTML()">📋 საბოლოო კოდის კოპირება</button>
+    <button class="btn btn-copy" onclick="copyFinalHTML()">📋 კოდის კოპირება</button>
 </div>
 
 <div id="main">
-    <div id="schedulePreview">
-        <div style="text-align:center; color:#888; margin-top:100px;">
+    <div id="live-container">
+        <div style="text-align:center; color:#bbb; padding: 50px 0;">
             <h3>განრიგი ცარიელია</h3>
-            <p>შეავსეთ მონაცემები და დააჭირეთ გენერირებას</p>
+            <p>აირჩიეთ თვეები და დააჭირეთ გენერირებას</p>
         </div>
     </div>
 </div>
@@ -81,7 +88,7 @@
 <textarea id="hiddenClipboard" style="display:none;"></textarea>
 
 <script>
-    const initialStaff = [
+    const defStaff = [
         {name: "შალვა გაგნიძე", phone: "555 555 555"},
         {name: "გიორგი ლომიძე", phone: "111 222 33"},
         {name: "ვასილ გოგალაძე", phone: "2232"},
@@ -94,13 +101,13 @@
         {name: "თანამშრომელი 10", phone: "599 00 00 10"}
     ];
 
-    const initialAdmins = [
-        {name: "პასუხისმგებელი 1", phone: "577 11 22 33"},
-        {name: "პასუხისმგებელი 2", phone: "577 44 55 66"}
+    const defAdmins = [
+        {name: "ადმინისტრატორი 1", phone: "577 11 22 33"},
+        {name: "ადმინისტრატორი 2", phone: "577 44 55 66"}
     ];
 
-    let staff = JSON.parse(localStorage.getItem('pro_staff')) || initialStaff;
-    let admins = JSON.parse(localStorage.getItem('pro_admins')) || initialAdmins;
+    let staff = JSON.parse(localStorage.getItem('pro_staff')) || defStaff;
+    let admins = JSON.parse(localStorage.getItem('pro_admins')) || defAdmins;
     let schedule = [];
     const kaMonths = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
 
@@ -120,11 +127,20 @@
     function updateUI() {
         document.getElementById('staffListUI').innerHTML = staff.map((s, i) => `<div class="list-item">${s.name} <span class="remove" onclick="staff.splice(${i},1);save();updateUI();renderPreview();">×</span></div>`).join('');
         document.getElementById('adminListUI').innerHTML = admins.map((a, i) => `<div class="list-item">${a.name} <span class="remove" onclick="admins.splice(${i},1);save();updateUI();renderPreview();">×</span></div>`).join('');
+        updateStats();
+    }
+
+    function updateStats() {
+        const counts = {};
+        schedule.forEach(d => counts[d.name] = (counts[d.name] || 0) + 1);
+        document.getElementById('statsContent').innerHTML = staff.map(s => `
+            <div class="stat-line"><span>${s.name}</span> <b>${counts[s.name] || 0} დღე</b></div>
+        `).join('');
     }
 
     function generateLogic() {
         const sM = document.getElementById('startMonth').value, eM = document.getElementById('endMonth').value;
-        if(!sM || !eM || staff.length === 0) return alert("შეავსეთ თარიღები!");
+        if(!sM || !eM || staff.length === 0) return alert("შეავსეთ მონაცემები!");
         
         schedule = [];
         let start = new Date(sM + "-01"), end = new Date(eM + "-01");
@@ -145,41 +161,39 @@
 
     function renderPreview() {
         if(schedule.length === 0) return;
-        const title = document.getElementById('topTitleInput').value;
+        updateStats();
         
         let html = `
-            <div style="background:white; padding:20px; border-radius:15px; color:#333; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
-                <div id="live-today-card" style="background:linear-gradient(135deg, #8b0000, #c0392b); color:white; padding:20px; border-radius:12px; text-align:center; margin-bottom:25px;">
-                    <div style="font-size:13px; opacity:0.8;">🔔 დღევანდელი მორიგე</div>
-                    <div id="sync-name" style="font-size:26px; font-weight:900; margin:10px 0;">(სინქრონიზაცია...)</div>
-                    <div id="sync-actions"></div>
-                </div>
-                <h1 style="text-align:center; color:#8b0000; font-size:20px;">${title}</h1>`;
+            <div class="preview-today-card">
+                <div style="font-size:12px; opacity:0.8;">🔔 დღევანდელი მორიგე</div>
+                <div style="font-size:24px; font-weight:900; margin:8px 0;">(ავტომატური სინქრონიზაცია)</div>
+                <div style="font-size:14px; background:white; color:#8b0000; padding:8px; border-radius:6px; font-weight:bold; display:inline-block;">ნომერი გამოჩნდება საბოლოო ფაილში</div>
+            </div>
+            <h2 style="text-align:center; color:#8b0000; font-size:18px; margin-bottom:20px;">აიტი-ტექნიკური თანამშრომლების განრიგი</h2>`;
 
         let lastM = -1;
         schedule.forEach((day, idx) => {
             if(day.m !== lastM) {
                 if(lastM !== -1) html += `</tbody></table>`;
-                html += `<div style="background:#f8f9fa; padding:12px; border-radius:8px; border-left:5px solid #8b0000; margin:25px 0 10px 0; display:flex; justify-content:space-between; align-items:center;">
-                    <b style="font-size:15px;">${kaMonths[day.m]} ${day.y}</b>
-                    <span class="current-time-inline" style="font-size:12px; color:#d00000; font-weight:bold; background:white; padding:3px 8px; border-radius:4px; border:1px solid #ddd;">📅...</span>
-                </div><table style="width:100%; border-collapse:collapse;"><tbody>`;
+                html += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; border-left:5px solid #8b0000; margin:20px 0 10px 0; font-weight:bold;">${kaMonths[day.m]} ${day.y}</div>
+                <table class="preview-table"><tbody>`;
                 lastM = day.m;
             }
             
-            const staffOptions = staff.map(s => `<option value="${s.name}" ${s.name === day.name ? 'selected' : ''}>${s.name}</option>`).join('');
+            const options = staff.map(s => `<option value="${s.name}" ${s.name === day.name ? 'selected' : ''}>${s.name}</option>`).join('');
             
-            html += `<tr style="border-bottom:1px solid #eee;" class="${day.isW ? 'weekend-row' : ''}">
-                <td style="padding:10px; font-weight:bold; width:40px;">${day.d}</td>
-                <td><select onchange="updatePerson(${idx}, this.value)" style="width:100%; border:none; background:none; font-weight:bold; cursor:pointer;">${staffOptions}</select></td>
-                <td style="text-align:right; font-size:12px; font-weight:bold; white-space:nowrap;">📞 ${day.phone}</td>
+            html += `<tr class="${day.isW ? 'weekend-row' : ''}">
+                <td style="width:30px; font-weight:bold;">${day.d}</td>
+                <td><select onchange="updatePerson(${idx}, this.value)" style="background:none; border:none; font-weight:bold; width:100%; color:inherit; cursor:pointer;">${options}</select></td>
+                <td style="text-align:right; font-size:11px; white-space:nowrap;">📞 ${day.phone}</td>
             </tr>`;
         });
 
-        let admHTML = admins.length > 0 ? `<div style="margin-top:30px; border-top:2px dashed #ddd; padding-top:20px; text-align:center;"><h4 style="color:#666; font-size:14px; margin-bottom:15px;">⚠️ პასუხისმგებელი პირები</h4>` + 
-            admins.map(a => `<div style="margin-bottom:15px;"><b>${a.name}</b><br><span style="font-size:13px;">📞 ${a.phone}</span></div>`).join('') + `</div>` : "";
+        let admHTML = `<div style="margin-top:25px; border-top:2px dashed #ddd; padding-top:15px; text-align:center;">
+            <h4 style="color:#888; margin-bottom:10px; font-size:12px;">⚠️ პასუხისმგებელი პირები</h4>` + 
+            admins.map(a => `<div style="margin-bottom:8px;"><b>${a.name}</b><br><span style="font-size:12px; color:#007bff;">📞 ${a.phone}</span></div>`).join('') + `</div>`;
 
-        document.getElementById('schedulePreview').innerHTML = html + `</tbody></table>${admHTML}</div>`;
+        document.getElementById('live-container').innerHTML = html + `</tbody></table>${admHTML}`;
     }
 
     function updatePerson(idx, newName) {
@@ -188,96 +202,67 @@
     }
 
     function copyFinalHTML() {
-        if(schedule.length === 0) return alert("ჯერ დააგენერირეთ განრიგი!");
+        if(schedule.length === 0) return alert("ჯერ დააგენერირეთ!");
         let temp = document.createElement('div');
-        temp.innerHTML = document.getElementById('schedulePreview').innerHTML;
+        temp.innerHTML = document.getElementById('live-container').innerHTML;
         
-        // სელექტების ტექსტად ქცევა
         temp.querySelectorAll('select').forEach(sel => {
             let b = document.createElement('b'); b.innerText = sel.value;
             sel.parentNode.replaceChild(b, sel);
         });
 
-        // ფუნქცია ნომრის გასუფთავებისთვის
-        const cleanNum = (txt) => txt.replace(/\D/g,'');
+        const cleanNum = (t) => t.replace(/\D/g,'');
 
-        // ძირითადი ცხრილის ნომრების დამუშავება
         temp.querySelectorAll('tr').forEach(tr => {
             let cell = tr.cells[2];
             if(cell) {
                 let raw = cell.innerText.replace('📞','').trim();
                 let clean = cleanNum(raw);
-                cell.innerHTML = `<div style="display:flex; flex-direction:column; gap:3px;">
-                    <a href="tel:${clean}" style="background:#007bff; color:white; text-decoration:none; padding:6px; border-radius:4px; font-size:11px; text-align:center; font-weight:bold;">📞 ${raw}</a>
-                    <a href="viber://contact?number=%2B995${clean.slice(-9)}" style="background:#7360f2; color:white; text-decoration:none; padding:4px; border-radius:4px; font-size:9px; text-align:center; font-weight:900;">VIBER</a>
+                cell.innerHTML = `<div style="display:flex; flex-direction:column; gap:2px;">
+                    <a href="tel:${clean}" style="background:#007bff; color:white; text-decoration:none; padding:5px; border-radius:4px; font-size:10px; text-align:center; font-weight:bold;">📞 ${raw}</a>
+                    <a href="viber://contact?number=%2B995${clean.slice(-9)}" style="background:#7360f2; color:white; text-decoration:none; padding:3px; border-radius:4px; font-size:8px; text-align:center; font-weight:900;">VIBER</a>
                 </div>`;
             }
         });
 
-        // ადმინისტრაციის ნომრების დამუშავება (VIBER-ის დამატება)
-        const admSection = temp.querySelector('div[style*="border-top:2px dashed"]');
-        if(admSection) {
-            admSection.querySelectorAll('span').forEach(span => {
-                let raw = span.innerText.replace('📞','').trim();
-                let clean = cleanNum(raw);
-                span.innerHTML = `<div style="display:flex; justify-content:center; gap:10px; margin-top:5px;">
-                    <a href="tel:${clean}" style="color:#007bff; text-decoration:none; font-weight:bold;">📞 ${raw}</a>
-                    <a href="viber://contact?number=%2B995${clean.slice(-9)}" style="color:#7360f2; text-decoration:none; font-weight:900; font-size:11px; border:1px solid #7360f2; padding:1px 5px; border-radius:4px;">VIBER</a>
-                </div>`;
-            });
-        }
+        // ადმინისტრაციის Viber
+        temp.querySelectorAll('span[style*="color:#007bff"]').forEach(span => {
+            let raw = span.innerText.replace('📞','').trim();
+            let clean = cleanNum(raw);
+            span.innerHTML = `<a href="tel:${clean}" style="color:#007bff; text-decoration:none; font-weight:bold;">📞 ${raw}</a> | 
+                              <a href="viber://contact?number=%2B995${clean.slice(-9)}" style="color:#7360f2; text-decoration:none; font-weight:bold; font-size:11px;">VIBER</a>`;
+        });
 
-        const finalCode = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 10px; margin: 0; }
-        .wrapper { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        .today-card { background: linear-gradient(135deg, #8b0000, #c0392b); color: white; padding: 22px; border-radius: 12px; text-align: center; margin-bottom: 25px; }
-        .active-row { background: #fff3cd !important; border: 2px solid #8b0000; }
-        .weekend-row { background: #fff9f9; color: #d9534f; }
-        td { border-bottom: 1px solid #eee; padding: 12px 8px; font-size: 14px; }
-        .btn-sync-call { background: white; color: #8b0000 !important; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .btn-sync-viber { background: rgba(255,255,255,0.2); color: white !important; text-decoration: none; padding: 8px; border-radius: 6px; font-size: 11px; font-weight: bold; display: block; }
-    </style>
-</head>
-<body>
-    <div class="wrapper">${temp.innerHTML}</div>
-    <script>
-        const mNames = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
-        function sync() {
-            const now = new Date();
-            const d = now.getDate(), m = now.getMonth(), y = now.getFullYear();
-            const timeStr = d + " " + mNames[m] + " | " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
-            document.querySelectorAll('.current-time-inline').forEach(el => el.innerText = "📅 " + timeStr);
-            document.querySelectorAll('tr').forEach(row => {
-                const rCell = row.cells[0]; if(!rCell) return;
-                const rowDay = parseInt(rCell.innerText);
-                const parentHeader = row.closest('table').previousElementSibling.innerText;
-                if(rowDay === d && parentHeader.includes(mNames[m]) && parentHeader.includes(y)) {
-                    row.classList.add('active-row');
-                    const name = row.cells[1].innerText;
-                    const phoneLink = row.cells[2].querySelector('a').getAttribute('href');
-                    const phoneNum = row.cells[2].querySelector('a').innerText;
-                    const viberLink = row.cells[2].querySelectorAll('a')[1].getAttribute('href');
-                    document.getElementById('sync-name').innerText = name;
-                    document.getElementById('sync-actions').innerHTML = \`
-                        <a href="\${phoneLink}" class="btn-sync-call">\${phoneNum}</a>
-                        <a href="\${viberLink}" class="btn-sync-viber">VIBER</a>\`;
-                } else { row.classList.remove('active-row'); }
-            });
-        }
-        setInterval(sync, 1000); sync();
-    <\/script>
-</body>
-</html>`;
-        
+        const finalCode = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body { font-family: sans-serif; background: #f4f7f6; padding: 10px; margin: 0; }
+            .wrapper { max-width: 480px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+            .today-card { background: linear-gradient(135deg, #8b0000, #c0392b); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+            .active-row { background: #fff3cd !important; border: 2px solid #8b0000; }
+            .weekend-row { background: #fff9f9; color: #d9534f; }
+            td { border-bottom: 1px solid #eee; padding: 10px 5px; font-size: 14px; }
+            .btn-sync { background: white; color: #8b0000!important; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; display: block; margin: 5px 0; }
+        </style></head><body><div class="wrapper">${temp.innerHTML.replace('(ავტომატური სინქრონიზაცია)', '<span id="sn">...</span>').replace('ნომერი გამოჩნდება საბოლოო ფაილში', '<div id="sa"></div>')}</div>
+        <script>
+            function sync() {
+                const now = new Date(); const d = now.getDate(), m = now.getMonth(), y = now.getFullYear();
+                const mNames = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
+                document.querySelectorAll('tr').forEach(row => {
+                    const rDay = parseInt(row.cells[0].innerText);
+                    const pHead = row.closest('table').previousElementSibling.innerText;
+                    if(rDay === d && pHead.includes(mNames[m]) && pHead.includes(y)) {
+                        row.classList.add('active-row');
+                        document.getElementById('sn').innerText = row.cells[1].innerText;
+                        document.getElementById('sa').innerHTML = row.cells[2].innerHTML.replace(/background:#[0-9a-f]+;/g, 'background:white; color:#8b0000;');
+                    } else row.classList.remove('active-row');
+                });
+            } setInterval(sync, 1000); sync();
+        <\/script></body></html>`;
+
         const clip = document.getElementById('hiddenClipboard');
         clip.value = finalCode; clip.style.display="block"; clip.select();
         document.execCommand('copy'); clip.style.display="none";
-        alert("✅ კოდი სინქრონიზებულია (ადმინისტრაციის Viber-ით) და დაკოპირებულია!");
+        alert("✅ კოდი დაკოპირებულია! სტატისტიკა შენახულია.");
     }
     window.onload = updateUI;
 </script>
