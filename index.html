@@ -35,8 +35,9 @@
 
         .phone-group { display: flex; flex-direction: column; gap: 5px; width: 100%; }
         .btn-call { background: #007bff; color: white !important; text-decoration: none; padding: 8px; border-radius: 6px; font-size: 13px; font-weight: bold; text-align: center; display: block; }
-        .btn-viber { background: var(--viber-bg); color: white !important; text-decoration: none; padding: 6px; border-radius: 6px; font-size: 10px; font-weight: 900; text-align: center; display: block; }
+        .btn-viber { background: var(--viber-bg); color: white !important; text-decoration: none; padding: 6px; border-radius: 6px; font-size: 10px; font-weight: 900; text-align: center; display: block; cursor: pointer; }
 
+        .count-badge { background: #4361ee; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px; }
         #codeOutput { display: none; }
     </style>
 </head>
@@ -67,11 +68,11 @@
     </div>
     
     <div class="input-group">
-        <label>პერსონალის ბაზა</label>
+        <label>პერსონალის ბაზა (დატვირთვა)</label>
         <input type="text" id="staffName" placeholder="სახელი">
         <input type="text" id="staffPhone" placeholder="ტელეფონი" style="margin-top:5px;">
         <button class="btn btn-primary" onclick="addStaff()">+ სიაში დამატება</button>
-        <div id="statsUI" style="margin-top:10px; max-height: 150px; overflow-y: auto; font-size:12px;"></div>
+        <div id="statsUI" style="margin-top:10px; max-height: 250px; overflow-y: auto; font-size:12px;"></div>
     </div>
 
     <button class="btn btn-copy" onclick="copyFinalHTML()">📋 კოდის კოპირება</button>
@@ -84,22 +85,19 @@
 <textarea id="codeOutput"></textarea>
 
 <script>
-    // === აქ ჩაწერე შენი მონაცემები რომ მუდმივად იყოს ===
     let staff = [
-      { name: "გიორგი ლომიძე", phone: "555558222" },
+        { name: "გიორგი ლომიძე", phone: "555558222" },
         { name: "შალვა გაგნიძე", phone: "551770200" },
         { name: "ალიკა ყალიჩავა", phone: "551688899" },
-         { name: "ვასილ გოგალაძე", phone: "557949827" },
-         { name: "გიორგი ტარყაშვილი", phone: "577385250" },
-         { name: "გიორგი ბოჭორიშვილი", phone: "591927831" },
-         { name: "გუგა ბალანჩივაძე", phone: "577978792" },
-       
-        
+        { name: "ვასილ გოგალაძე", phone: "557949827" },
+        { name: "გიორგი ტარყაშვილი", phone: "577385250" },
+        { name: "გიორგი ბოჭორიშვილი", phone: "591927831" },
+        { name: "გუგა ბალანჩივაძე", phone: "577978792" }
     ];
     let admins = [
-        { name: "უფროსი", phone: "555000000" }
+        { name: "უჩა მჭედლიშვილი", phone: "599470033" },
+        { name: "თემო გელაშვილი", phone: "577698890" }
     ];
-    // ===============================================
 
     let currentScheduleData = [];
     const monthsKA = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
@@ -113,10 +111,10 @@
     }
     setInterval(updateLiveClocks, 1000);
 
-    function formatViber(p) {
-        let clean = p.toString().replace(/\D/g, '');
+    function openViber(phone) {
+        let clean = phone.toString().replace(/\D/g, '');
         if (clean.length === 9) clean = '995' + clean;
-        return "viber://contact?number=%2B" + clean;
+        window.location.href = "viber://contact?number=%2B" + clean;
     }
 
     function addAdmin() {
@@ -124,28 +122,53 @@
         if(n.value.trim()) { admins.push({ name: n.value.trim(), phone: p.value.trim() }); updateAdminUI(); renderPreview(); n.value=""; p.value=""; }
     }
 
-    function updateAdminUI() { document.getElementById('adminList').innerHTML = admins.map((a, i) => `<div style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>${a.name}</span><span onclick="admins.splice(${i},1); updateAdminUI(); renderPreview();" style="color:red; cursor:pointer;">×</span></div>`).join(''); }
+    function updateAdminUI() { 
+        document.getElementById('adminList').innerHTML = admins.map((a, i) => `<div style="display:flex; justify-content:space-between; margin-bottom:3px; background:rgba(255,255,255,0.05); padding:5px; border-radius:4px;"><span>${a.name}</span><span onclick="admins.splice(${i},1); updateAdminUI(); renderPreview();" style="color:#ff4d4d; cursor:pointer; font-weight:bold;">×</span></div>`).join(''); 
+    }
 
     function addStaff() {
         const n = document.getElementById('staffName'), p = document.getElementById('staffPhone');
         if(n.value.trim()) { staff.push({ name: n.value.trim(), phone: p.value.trim() }); updateStaffUI(); renderPreview(); n.value=""; p.value=""; }
     }
 
-    function updateStaffUI() { document.getElementById('statsUI').innerHTML = staff.map((s, i) => `<div style="display:flex; justify-content:space-between; margin-bottom:3px;"><span>${s.name}</span><span onclick="staff.splice(${i},1); updateStaffUI(); renderPreview();" style="color:red; cursor:pointer;">×</span></div>`).join(''); }
+    function updateStaffUI() { 
+        // ვითვლით რამდენჯერაა თითოეული განრიგში
+        const counts = {};
+        currentScheduleData.forEach(d => { counts[d.staffName] = (counts[d.staffName] || 0) + 1; });
+
+        document.getElementById('statsUI').innerHTML = staff.map((s, i) => {
+            const count = counts[s.name] || 0;
+            return `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; background:rgba(255,255,255,0.05); padding:5px; border-radius:4px;">
+                <span>${s.name} <span class="count-badge">${count}</span></span>
+                <span onclick="staff.splice(${i},1); updateStaffUI(); renderPreview();" style="color:#ff4d4d; cursor:pointer; font-weight:bold; padding:0 5px;">×</span>
+            </div>`;
+        }).join(''); 
+    }
 
     function generateRandom() {
         const s = document.getElementById('startMonth').value, e = document.getElementById('endMonth').value;
         if(!s || !e || staff.length === 0) return alert("შეავსეთ მონაცემები!");
+        
         let shuffled = [...staff].sort(() => Math.random() - 0.5);
         let cur = new Date(Date.UTC(s.split('-')[0], s.split('-')[1]-1, 1));
         const end = new Date(Date.UTC(e.split('-')[0], e.split('-')[1], 0));
+        
         currentScheduleData = [];
         let idx = 0;
         while(cur <= end) {
             let p = shuffled[idx % shuffled.length];
-            currentScheduleData.push({ day: cur.getUTCDate(), month: cur.getUTCMonth(), year: cur.getUTCFullYear(), isWeekend: (cur.getUTCDay() === 0 || cur.getUTCDay() === 6), staffName: p.name, staffPhone: p.phone });
-            idx++; cur.setUTCDate(cur.getUTCDate() + 1);
+            currentScheduleData.push({ 
+                day: cur.getUTCDate(), 
+                month: cur.getUTCMonth(), 
+                year: cur.getUTCFullYear(), 
+                isWeekend: (cur.getUTCDay() === 0 || cur.getUTCDay() === 6), 
+                staffName: p.name, 
+                staffPhone: p.phone 
+            });
+            idx++; 
+            cur.setUTCDate(cur.getUTCDate() + 1);
         }
+        updateStaffUI();
         renderPreview();
     }
 
@@ -154,7 +177,7 @@
         const now = new Date();
         const todayData = currentScheduleData.find(d => d.day === now.getDate() && d.month === now.getMonth() && d.year === now.getFullYear());
 
-        let todayHTML = todayData ? `<div class="today-box"><h2>🔔 დღევანდელი მორიგე</h2><div class="today-name">${todayData.staffName}</div><div class="phone-group" style="max-width:220px; margin:auto;"><a href="tel:${todayData.staffPhone.replace(/\D/g,'')}" class="btn-call" style="background:#fff; color:#8b0000 !important;">📞 ${todayData.staffPhone}</a><a href="${formatViber(todayData.staffPhone)}" class="btn-viber" style="background:#fff; color:#7360f2 !important;">VIBER</a></div></div>` : "";
+        let todayHTML = todayData ? `<div class="today-box"><h2>🔔 დღევანდელი მორიგე</h2><div class="today-name">${todayData.staffName}</div><div class="phone-group" style="max-width:220px; margin:auto;"><a href="tel:${todayData.staffPhone.replace(/\D/g,'')}" class="btn-call" style="background:#fff; color:#8b0000 !important;">📞 ${todayData.staffPhone}</a><div onclick="openViber('${todayData.staffPhone}')" class="btn-viber" style="background:#fff; color:#7360f2 !important;">VIBER</div></div></div>` : "";
 
         let html = `${todayHTML}<h1 style="text-align:center; color:var(--dark-red); font-size:22px;">${title}</h1>`;
         let lastMonth = -1;
@@ -168,19 +191,19 @@
             const options = staff.map(s => `<option value="${s.name}" ${s.name === item.staffName ? 'selected' : ''}>${s.name}</option>`).join('');
             html += `<tr class="${item.isWeekend?'weekend':''}">
                 <td style="width:10%; font-weight:bold;">${item.day}</td>
-                <td style="width:45%;"><select style="background:white; color:black; border:1px solid #ccc; padding:6px; width:100%; border-radius:4px;" onchange="const p=staff.find(s=>s.name===this.value); currentScheduleData[${i}].staffName=p.name; currentScheduleData[${i}].staffPhone=p.phone; renderPreview();">${options}</select></td>
+                <td style="width:45%;"><select style="background:white; color:black; border:1px solid #ccc; padding:6px; width:100%; border-radius:4px;" onchange="const p=staff.find(s=>s.name===this.value); currentScheduleData[${i}].staffName=p.name; currentScheduleData[${i}].staffPhone=p.phone; updateStaffUI(); renderPreview();">${options}</select></td>
                 <td style="width:45%;">
                     <div class="phone-group">
                         <a href="tel:${item.staffPhone.replace(/\D/g,'')}" class="btn-call">📞 ${item.staffPhone}</a>
-                        <a href="${formatViber(item.staffPhone)}" class="btn-viber">VIBER</a>
+                        <div onclick="openViber('${item.staffPhone}')" class="btn-viber">VIBER</div>
                     </div>
                 </td>
             </tr>`;
         });
 
-        let adminsHTML = admins.length > 0 ? `<div style="margin-top:40px; border-top:2px solid #eee; padding-top:20px; text-align:center;"><h3 style="color:#555; font-size:14px;">⚠️ პასუხისმგებელი პირები</h3>${admins.map(a => `<div style="margin:15px auto; max-width:250px;"><div style="font-weight:bold; margin-bottom:5px;">${a.name}</div><div class="phone-group"><a href="tel:${a.phone.replace(/\D/g,'')}" class="btn-call">📞 ${a.phone}</a><a href="${formatViber(a.phone)}" class="btn-viber">VIBER</a></div></div>`).join('')}</div>` : "";
+        let adminsHTML = admins.length > 0 ? `<div style="margin-top:40px; border-top:2px solid #eee; padding-top:20px; text-align:center;"><h3 style="color:#555; font-size:14px;">⚠️ პასუხისმგებელი პირები</h3>${admins.map(a => `<div style="margin:15px auto; max-width:250px;"><div style="font-weight:bold; margin-bottom:5px;">${a.name}</div><div class="phone-group"><a href="tel:${a.phone.replace(/\D/g,'')}" class="btn-call">📞 ${a.phone}</a><div onclick="openViber('${a.phone}')" class="btn-viber">VIBER</div></div></div>`).join('')}</div>` : "";
 
-        document.getElementById('schedulePreview').innerHTML = html + "</tbody></table>" + adminsHTML;
+        document.getElementById('schedulePreview').innerHTML = html + (currentScheduleData.length ? "</tbody></table>" : "") + adminsHTML;
         updateLiveClocks();
     }
 
@@ -189,6 +212,7 @@
         tempDiv.innerHTML = document.getElementById('schedulePreview').innerHTML;
         tempDiv.querySelectorAll('select').forEach(s => { let b = document.createElement('b'); b.innerText = s.value; s.parentNode.replaceChild(b, s); });
         
+        // Final HTML-ში Viber-ის ფუნქციის ჩამატება
         const final = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>
             body { font-family: sans-serif; padding: 5px; background: #f9f9f9; }
             .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -201,9 +225,14 @@
             .weekend { background: #fffafa; color: #d9534f; }
             .phone-group { display: flex; flex-direction: column; gap: 4px; }
             .btn-call { background: #007bff; color: white !important; text-decoration: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center; }
-            .btn-viber { background: #7360f2; color: white !important; text-decoration: none; padding: 8px; border-radius: 6px; font-size: 10px; font-weight: 900; text-align: center; }
+            .btn-viber { background: #7360f2; color: white !important; text-decoration: none; padding: 8px; border-radius: 6px; font-size: 10px; font-weight: 900; text-align: center; cursor: pointer; }
         </style></head><body><div class="container">${tempDiv.innerHTML}</div>
         <script>
+            function openViber(p) { 
+                let c = p.replace(/\\D/g, ''); 
+                if(c.length === 9) c = '995' + c;
+                window.location.href = "viber://contact?number=%2B" + c;
+            }
             const m = ["იანვარი", "თებერვალი", "მარტი", "აპრილი", "მაისი", "ივნისი", "ივლისი", "აგვისტო", "სექტემბერი", "ოქტომბერი", "ნოემბერი", "დეკემბერი"];
             setInterval(() => {
                 const now = new Date();
@@ -215,7 +244,7 @@
         const el = document.getElementById('codeOutput'); el.value = final; el.style.display="block"; el.select(); document.execCommand('copy'); el.style.display="none";
         alert("კოდი დაკოპირდა!");
     }
-    // მთავარი: გვერდის ჩატვირთვისას მაშინვე აჩვენებს ყველაფერს
+
     window.onload = () => { updateAdminUI(); updateStaffUI(); renderPreview(); };
 </script>
 </body>
